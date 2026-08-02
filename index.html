@@ -72,9 +72,38 @@
 
 /* ═══════════════════════════════════ BASE */
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body { margin: 0; background: var(--ground); color: var(--ink);
   font-family: var(--body); font-size: 16px; line-height: 1.8; -webkit-font-smoothing: antialiased; }
-.wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 26px; }
+
+/* ═══════════════════════════════════ 布局：左侧目录 + 正文 */
+.layout { max-width: 1380px; margin: 0 auto; padding: 0 26px;
+  display: grid; grid-template-columns: 194px minmax(0, 1fr); gap: 58px; align-items: start; }
+.content { min-width: 0; }
+
+.toc { position: sticky; top: 0; padding: 96px 0 40px; }
+.toc-top { display: block; text-decoration: none; color: var(--ink);
+  font-family: var(--display); font-size: 15.5px; font-weight: 700; line-height: 1.5;
+  padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+.toc-top span { display: block; font-family: var(--body); font-size: 12px;
+  font-weight: 400; color: var(--ink-3); margin-top: 4px; }
+.toc-top:hover { color: var(--pixel); }
+
+.toc ol { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 2px; }
+.toc a { display: flex; gap: 10px; align-items: baseline; text-decoration: none;
+  color: var(--ink-2); font-size: 14px; line-height: 1.5; padding: 8px 10px 8px 12px;
+  border-left: 2px solid transparent; border-radius: 0 2px 2px 0;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease; }
+.toc a i { font-style: normal; font-family: var(--mono); font-size: 10.5px;
+  letter-spacing: .06em; color: var(--ink-3); flex: 0 0 auto; }
+.toc a:hover { color: var(--pixel); background: var(--pixel-tint);
+  border-left-color: var(--pixel-edge); }
+.toc a:hover i { color: var(--pixel); }
+/* 点击后（:target 命中对应 section）高亮当前条目 */
+.toc-sig { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--rule);
+  font-family: var(--display); font-size: 13.5px; color: var(--ink-3); }
+
+section[id] { scroll-margin-top: 24px; }
 p { margin: 0; max-width: var(--measure); }
 h1,h2,h3,h4 { margin: 0; text-wrap: balance; font-weight: 600; }
 b { font-weight: 600; color: var(--ink); }
@@ -356,6 +385,11 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   padding-top: 18px; border-top: 1px solid var(--rule-soft); }
 
 /* ═══════════════════════════════════ 响应式 */
+/* 窄屏收起目录栏：正文回到单列，避免挤压 */
+@media (max-width: 1040px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 0; max-width: 1120px; }
+  .toc { display: none; }
+}
 @media (max-width: 860px) {
   .chain, .p0s, .exp { grid-template-columns: 1fr; }
   .kind { grid-template-columns: 1fr; }
@@ -370,7 +404,24 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 
 </head>
 <body>
-<div class="wrap">
+<div class="layout">
+
+<aside class="toc" aria-label="目录">
+  <nav>
+    <a class="toc-top" href="#top">AI 视频创作 Agent<span>Skill 设计与开发</span></a>
+    <ol>
+      <li><a href="#s1"><i>§1</i>市场判断</a></li>
+      <li><a href="#s2"><i>§2</i>从痛点到 P0</a></li>
+      <li><a href="#s3"><i>§3</i>工程链路</a></li>
+      <li><a href="#s4"><i>§4</i>怎么验证</a></li>
+      <li><a href="#s5"><i>§5</i>一个具体 case</a></li>
+      <li><a href="#s6"><i>§6</i>思考与感悟</a></li>
+    </ol>
+    <div class="toc-sig">颜雍颀</div>
+  </nav>
+</aside>
+
+<div class="content" id="top">
 
 <!-- ══════════════════════════════ HERO ══════════════════════════════ -->
 <header class="hero">
@@ -412,7 +463,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 </header>
 
 <!-- ══════════════════════════════ §1 市场 ══════════════════════════════ -->
-<section>
+<section id="s1">
   <div class="sec-head">
     <span class="eyebrow">§1 · 市场判断</span>
     <h2>拆竞品不是为了罗列工具，是为了判断链路卡在哪一段</h2>
@@ -469,7 +520,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 </section>
 
 <!-- ══════════════════════════════ §2 痛点 → P0 ══════════════════════════════ -->
-<section>
+<section id="s2">
   <div class="sec-head">
     <span class="eyebrow">§2 · 从痛点到 P0</span>
     <h2>两个痛点，两个指标，两个 Skill</h2>
@@ -546,7 +597,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 </section>
 
 <!-- ══════════════════════════════ §3 工程链路 ══════════════════════════════ -->
-<section>
+<section id="s3">
   <div class="sec-head">
     <span class="eyebrow">§3 · 迭代完的工程链路</span>
     <h2>Agent 负责判断，Python 脚本负责执行</h2>
@@ -646,7 +697,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 </section>
 
 <!-- ══════════════════════════════ §4 实验 ══════════════════════════════ -->
-<section>
+<section id="s4">
   <div class="sec-head">
     <span class="eyebrow">§4 · 怎么验证</span>
     <h2>横向对照测有没有用，纵向迭代测每一版解决了什么</h2>
@@ -764,7 +815,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 </section>
 
 <!-- ══════════════════════════════ §5 case ══════════════════════════════ -->
-<section>
+<section id="s5">
   <div class="sec-head">
     <span class="eyebrow">§5 · 一个具体的 case</span>
     <h2>校园悬疑女主：单张图都不差，一进视频链路就崩</h2>
@@ -824,7 +875,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 </section>
 
 <!-- ══════════════════════════════ §6 收束 ══════════════════════════════ -->
-<section>
+<section id="s6">
   <div class="sec-head">
     <span class="eyebrow">§6 · 思考与感悟</span>
     <h2>这段经历里我真正沉下来的四件事</h2>
@@ -885,6 +936,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   <p class="sig-path">AI 视频创作 Agent · Skill 设计与开发 ｜ 竞品拆解 → 用户研究 → P0 判断 → Skill 开发 → 对照实验 → 下游反测</p>
 </footer>
 
+</div>
 </div>
 </body>
 </html>
