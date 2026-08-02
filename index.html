@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="description" content="AI 视频创作 Agent · Skill 设计与开发：竞品判断 → 两大痛点 → 两个 P0 Skill → 工程链路 → 对照实验 → 思考沉淀。">
-<meta name="color-scheme" content="light dark">
+<meta name="color-scheme" content="light">
 <title>AI 视频创作 Agent · Skill 设计与开发</title>
 
 <style>
@@ -13,61 +13,34 @@
    四色语义直接来自项目本身——四类信息，四种承载方式：
    铜褐=参考图像素 · 青蓝=文字锁定 · 苔绿=空间骨架 · 石墨=脚本常量
    ═══════════════════════════════════════════════════════════════ */
+/* 单一亮色主题：莫兰迪自配色板
+   语义四色 = 四类信息的承载方式；另两色为非语义装饰 */
 :root {
-  --ground:    #F0EDE7;
-  --surface:   #FBF9F5;
-  --surface-2: #F5F2EC;
-  --ink:       #4A453F;
-  --ink-2:     #706A63;
-  --ink-3:     #9A938A;
-  --rule:      #DED8CF;
-  --rule-soft: #EAE5DD;
+  --ground:    #F5F3EF;
+  --surface:   #FDFCFA;
+  --surface-2: #F8F6F2;
+  --ink:       #37332F;
+  --ink-2:     #6B655E;
+  --ink-3:     #968F86;
+  --rule:      #E2DCD3;
+  --rule-soft: #EFEAE3;
 
-  --pixel:      #9C7360;  --pixel-tint:    #F5EAE1;  --pixel-edge:    #DAC6B6;
-  --text:       #5B7285;  --text-tint:     #E6EBF0;  --text-edge:     #BDC8D2;
-  --space:      #66785F;  --space-tint:    #E9EEE5;  --space-edge:    #C3CEBD;
-  --script:     #6F6860;  --script-tint:   #EDE9E2;  --script-edge:   #CBC5BB;
+  --pixel:   #9A6E56;  --pixel-tint:   #F2E5DA;  --pixel-edge:   #D8C0AD;  /* 陶土 · 参考图像素 */
+  --text:    #5F7488;  --text-tint:    #E3E9EE;  --text-edge:    #BAC6D0;  /* 雾蓝 · 文字锁定 */
+  --space:   #667659;  --space-tint:   #E6ECE0;  --space-edge:   #BFCBB6;  /* 鼠尾草 · 空间骨架 */
+  --script:  #6B6459;  --script-tint:  #EDE8E0;  --script-edge:  #CCC5B9;  /* 暖灰褐 · 脚本常量 */
 
-  --shadow: 0 1px 2px rgba(90,80,70,.07), 0 10px 26px -14px rgba(90,80,70,.20);
+  --rose:    #9B7273;  --rose-tint:    #F1E4E4;  --rose-edge:    #D9C1C1;  /* 灰玫瑰 · 装饰 */
+  --mustard: #94764A;  --mustard-tint: #F2EADA;  --mustard-edge: #D7C7A9;  /* 灰芥末 · 装饰 */
+
+  --shadow:      0 1px 2px rgba(90,80,70,.06), 0 10px 26px -14px rgba(90,80,70,.18);
+  --shadow-lift: 0 2px 6px rgba(90,80,70,.10), 0 18px 36px -16px rgba(90,80,70,.28);
 
   --display: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", Georgia, serif;
   --body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, system-ui, sans-serif;
   --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
 
-  --maxw: 1120px;
   --measure: 36em;
-}
-@media (prefers-color-scheme: dark) {
-  :root {
-    --ground: #3E3A34; --surface: #4A463F; --surface-2: #534E47;
-    --ink: #EDE8E1; --ink-2: #C0B9B0; --ink-3: #948D84;
-    --rule: #5C574F; --rule-soft: #514C45;
-    --pixel: #D2AC94; --pixel-tint: #554941; --pixel-edge: #75634F;
-    --text:  #A5BACD; --text-tint:  #45505A; --text-edge:  #5E6C78;
-    --space: #ADBEA3; --space-tint: #485346; --space-edge: #62705B;
-    --script:#B9B2A7; --script-tint:#514D46; --script-edge:#6A655B;
-    --shadow: 0 1px 2px rgba(28,25,22,.40), 0 10px 30px -16px rgba(28,25,22,.66);
-  }
-}
-:root[data-theme="light"] {
-  --ground: #F0EDE7; --surface: #FBF9F5; --surface-2: #F5F2EC;
-  --ink: #4A453F; --ink-2: #706A63; --ink-3: #9A938A;
-  --rule: #DED8CF; --rule-soft: #EAE5DD;
-  --pixel: #9C7360; --pixel-tint: #F5EAE1; --pixel-edge: #DAC6B6;
-  --text:  #5B7285; --text-tint:  #E6EBF0; --text-edge:  #BDC8D2;
-  --space: #66785F; --space-tint: #E9EEE5; --space-edge: #C3CEBD;
-  --script:#6F6860; --script-tint:#EDE9E2; --script-edge:#CBC5BB;
-  --shadow: 0 1px 2px rgba(90,80,70,.07), 0 10px 26px -14px rgba(90,80,70,.20);
-}
-:root[data-theme="dark"] {
-  --ground: #3E3A34; --surface: #4A463F; --surface-2: #534E47;
-  --ink: #EDE8E1; --ink-2: #C0B9B0; --ink-3: #948D84;
-  --rule: #5C574F; --rule-soft: #514C45;
-  --pixel: #D2AC94; --pixel-tint: #554941; --pixel-edge: #75634F;
-  --text:  #A5BACD; --text-tint:  #45505A; --text-edge:  #5E6C78;
-  --space: #ADBEA3; --space-tint: #485346; --space-edge: #62705B;
-  --script:#B9B2A7; --script-tint:#514D46; --script-edge:#6A655B;
-  --shadow: 0 1px 2px rgba(28,25,22,.40), 0 10px 30px -16px rgba(28,25,22,.66);
 }
 
 /* ═══════════════════════════════════ BASE */
@@ -208,7 +181,8 @@ section { padding: 76px 0; border-top: 1px solid var(--rule); }
 .p0 { border: 1px solid var(--pixel-edge); background: var(--pixel-tint);
   border-radius: 3px; padding: 22px; }
 .p0 .badge { display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 700;
-  letter-spacing: .1em; background: var(--pixel); color: var(--surface); padding: 2px 7px; border-radius: 2px; }
+  letter-spacing: .1em; background: var(--surface); color: var(--ink); border: 1px solid var(--pixel-edge);
+  padding: 2px 8px; border-radius: 2px; }
 .p0 h3 { font-family: var(--display); font-size: 21px; font-weight: 700; margin-top: 11px; }
 .p0 p { font-size: 14.5px; color: var(--ink-2); margin-top: 10px; max-width: none; }
 .p0 .quote { margin-top: 12px; font-size: 14px; color: var(--ink-2); border-left: 2px solid var(--pixel-edge);
@@ -255,16 +229,16 @@ section { padding: 76px 0; border-top: 1px solid var(--rule); }
 .kind .kwhy { font-size: 14.5px; color: var(--ink-2); margin-top: 11px; max-width: none; }
 .kind.k1 { border-left: 3px solid var(--pixel); }
 .kind.k1 .kl { background: var(--pixel-tint); } .kind.k1 .kt { color: var(--pixel); }
-.kind.k1 .carrier { background: var(--pixel); color: var(--surface); }
+.kind.k1 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--pixel-edge); }
 .kind.k2 { border-left: 3px solid var(--text); }
 .kind.k2 .kl { background: var(--text-tint); } .kind.k2 .kt { color: var(--text); }
-.kind.k2 .carrier { background: var(--text); color: var(--surface); }
+.kind.k2 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--text-edge); }
 .kind.k3 { border-left: 3px solid var(--space); }
 .kind.k3 .kl { background: var(--space-tint); } .kind.k3 .kt { color: var(--space); }
-.kind.k3 .carrier { background: var(--space); color: var(--surface); }
+.kind.k3 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--space-edge); }
 .kind.k4 { border-left: 3px solid var(--script); }
 .kind.k4 .kl { background: var(--script-tint); } .kind.k4 .kt { color: var(--script); }
-.kind.k4 .carrier { background: var(--script); color: var(--surface); }
+.kind.k4 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--script-edge); }
 
 .split { margin-top: 34px; display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 20px; }
 .split > div { border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); padding: 20px; }
@@ -400,6 +374,35 @@ footer .sig-name { font-family: var(--display); font-size: 21px; font-weight: 70
 footer .sig-role { font-size: 14px; color: var(--ink-2); margin-top: 6px; max-width: none; }
 footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; margin-top: 22px;
   padding-top: 18px; border-top: 1px solid var(--rule-soft); }
+
+/* ═══════════════════════════════════ 交互 */
+.rival, .stat, .p0, .expcard, .kind, .dims > div, .formula .fi, .context-bar > div {
+  transition: transform .22s cubic-bezier(.2,.7,.3,1), box-shadow .22s ease,
+              border-color .22s ease, background-color .22s ease; }
+.rival:hover, .p0:hover, .expcard:hover, .kind:hover {
+  transform: translateY(-3px); box-shadow: var(--shadow-lift); }
+.stat:hover, .dims > div:hover, .formula .fi:hover, .context-bar > div:hover {
+  background: var(--surface-2); }
+.rival:hover h4 { color: var(--pixel); }
+.take .tn { transition: color .22s ease; }
+.take:hover .tn { color: var(--pixel); }
+.arm { transition: background-color .22s ease; }
+.arm:hover { background: var(--surface-2); }
+.arm.a3:hover { background: var(--pixel-tint); }
+
+/* 条形图滚动入场 */
+.bar .fill { width: 0; transition: width 1.1s cubic-bezier(.22,.8,.28,1); }
+.bars.in .fill { width: var(--w); }
+
+/* 目录当前章节高亮（scroll-spy） */
+.toc .lv1 > a.active { border-left-color: var(--pixel); }
+.toc .lv1 > a.active b { color: var(--pixel); }
+.toc .lv1 > a.active i { color: var(--pixel); }
+
+/* 章节入场 */
+.reveal { opacity: 0; transform: translateY(14px);
+  transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.3,1); }
+.reveal.in { opacity: 1; transform: none; }
 
 /* ═══════════════════════════════════ 响应式 */
 /* 窄屏收起目录栏：正文回到单列，避免挤压 */
@@ -751,21 +754,21 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
               <div class="bn">第一路 · 用户原话直喂<small>零 LLM 基线，测模型裸能力</small></div>
               <div class="bv">50%</div>
             </div>
-            <div class="track"><div class="fill" style="width:50%"></div></div>
+            <div class="track"><div class="fill" style="--w:50%"></div></div>
           </div>
           <div class="bar b2">
             <div class="bl">
               <div class="bn">第二路 · 裸 Agent 自由生成<small>不加载 Skill，测 Agent 本能</small></div>
               <div class="bv">65%</div>
             </div>
-            <div class="track"><div class="fill" style="width:65%"></div></div>
+            <div class="track"><div class="fill" style="--w:65%"></div></div>
           </div>
           <div class="bar b3">
             <div class="bl">
               <div class="bn">第三路 · Agent + Skill<small>测结构化约束的额外提升</small></div>
               <div class="bv">75%</div>
             </div>
-            <div class="track"><div class="fill" style="width:75%"></div></div>
+            <div class="track"><div class="fill" style="--w:75%"></div></div>
           </div>
         </div>
         <p class="honest-note" style="margin-top:20px">
@@ -968,5 +971,43 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 
 </div>
 </div>
+<script>
+/* 极简交互：目录高亮 + 滚动入场。无外部依赖。 */
+(function () {
+  var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // 目录 scroll-spy
+  var links = {};
+  document.querySelectorAll('.toc .lv1 > a[href^="#s"]').forEach(function (a) {
+    links[a.getAttribute("href").slice(1)] = a;
+  });
+  var spy = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      for (var k in links) links[k].classList.remove("active");
+      if (links[e.target.id]) links[e.target.id].classList.add("active");
+    });
+  }, { rootMargin: "-15% 0px -70% 0px" });
+  document.querySelectorAll("section[id]").forEach(function (n) { spy.observe(n); });
+
+  if (reduce) {
+    document.querySelectorAll(".bars").forEach(function (n) { n.classList.add("in"); });
+    return;
+  }
+
+  // 滚动入场：条形图 + 章节标题
+  document.querySelectorAll(".sec-head, .bars").forEach(function (n) {
+    if (!n.classList.contains("bars")) n.classList.add("reveal");
+  });
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in");
+      io.unobserve(e.target);
+    });
+  }, { rootMargin: "0px 0px -12% 0px", threshold: .15 });
+  document.querySelectorAll(".reveal, .bars").forEach(function (n) { io.observe(n); });
+})();
+</script>
 </body>
 </html>
