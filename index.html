@@ -81,29 +81,46 @@ body { margin: 0; background: var(--ground); color: var(--ink);
   display: grid; grid-template-columns: 194px minmax(0, 1fr); gap: 58px; align-items: start; }
 .content { min-width: 0; }
 
-.toc { position: sticky; top: 0; padding: 96px 0 40px; }
+.toc { position: sticky; top: 0; padding: 96px 0 40px;
+  max-height: 100vh; overflow-y: auto; scrollbar-width: thin;
+  scrollbar-color: var(--rule) transparent; }
+.toc::-webkit-scrollbar { width: 4px; }
+.toc::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 2px; }
+
 .toc-top { display: block; text-decoration: none; color: var(--ink);
   font-family: var(--display); font-size: 15.5px; font-weight: 700; line-height: 1.5;
-  padding-bottom: 16px; border-bottom: 1px solid var(--rule); }
+  padding-bottom: 15px; border-bottom: 1px solid var(--rule); }
 .toc-top span { display: block; font-family: var(--body); font-size: 12px;
   font-weight: 400; color: var(--ink-3); margin-top: 4px; }
 .toc-top:hover { color: var(--pixel); }
 
-.toc ol { list-style: none; margin: 18px 0 0; padding: 0; display: grid; gap: 2px; }
-.toc a { display: flex; gap: 10px; align-items: baseline; text-decoration: none;
-  color: var(--ink-2); font-size: 14px; line-height: 1.5; padding: 8px 10px 8px 12px;
-  border-left: 2px solid transparent; border-radius: 0 2px 2px 0;
-  transition: color .18s ease, background-color .18s ease, border-color .18s ease; }
-.toc a i { font-style: normal; font-family: var(--mono); font-size: 10.5px;
+.toc ol, .toc ul { list-style: none; margin: 0; padding: 0; }
+.toc ol { margin-top: 16px; display: grid; gap: 14px; }
+.toc a { display: block; text-decoration: none; color: var(--ink-2);
+  border-left: 2px solid transparent;
+  transition: color .16s ease, border-color .16s ease; }
+
+/* 一级：章节 */
+.toc .lv1 > a { display: flex; gap: 9px; align-items: baseline;
+  font-size: 14.5px; line-height: 1.45; padding: 0 0 0 11px;
+  border-left-color: var(--rule); }
+.toc .lv1 > a i { font-style: normal; font-family: var(--mono); font-size: 10.5px;
   letter-spacing: .06em; color: var(--ink-3); flex: 0 0 auto; }
-.toc a:hover { color: var(--pixel); background: var(--pixel-tint);
-  border-left-color: var(--pixel-edge); }
-.toc a:hover i { color: var(--pixel); }
-/* 点击后（:target 命中对应 section）高亮当前条目 */
-.toc-sig { margin-top: 22px; padding-top: 16px; border-top: 1px solid var(--rule);
-  font-family: var(--display); font-size: 13.5px; color: var(--ink-3); }
+.toc .lv1 > a b { font-family: var(--display); font-weight: 700; color: var(--ink); }
+.toc .lv1 > a:hover { border-left-color: var(--pixel); }
+.toc .lv1 > a:hover b, .toc .lv1 > a:hover i { color: var(--pixel); }
+
+/* 二级：子节 */
+.toc .lv1 ul { margin-top: 7px; display: grid; gap: 1px; }
+.toc .lv1 ul a { font-size: 12.5px; line-height: 1.5; color: var(--ink-3);
+  padding: 3px 8px 3px 11px; border-left-color: var(--rule-soft); }
+.toc .lv1 ul a:hover { color: var(--pixel); border-left-color: var(--pixel);
+  background: var(--pixel-tint); }
 
 section[id] { scroll-margin-top: 24px; }
+[id="rivals"], [id="verdict"], [id="context"], [id="pains"], [id="p0s"],
+[id="pipeline"], [id="kinds"], [id="skillrules"], [id="exp"], [id="metric"],
+[id="downstream"], [id="casebox"], [id="takes"], [id="formula"] { scroll-margin-top: 28px; }
 p { margin: 0; max-width: var(--measure); }
 h1,h2,h3,h4 { margin: 0; text-wrap: balance; font-weight: 600; }
 b { font-weight: 600; color: var(--ink); }
@@ -410,14 +427,27 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   <nav>
     <a class="toc-top" href="#top">AI 视频创作 Agent<span>Skill 设计与开发</span></a>
     <ol>
-      <li><a href="#s1"><i>§1</i>市场判断</a></li>
-      <li><a href="#s2"><i>§2</i>从痛点到 P0</a></li>
-      <li><a href="#s3"><i>§3</i>工程链路</a></li>
-      <li><a href="#s4"><i>§4</i>怎么验证</a></li>
-      <li><a href="#s5"><i>§5</i>一个具体 case</a></li>
-      <li><a href="#s6"><i>§6</i>思考与感悟</a></li>
+      <li class="lv1"><a href="#s1"><i>§1</i><b>市场判断</b></a>
+        <ul><li><a href="#rivals">四类竞品拆解</a></li>
+            <li><a href="#verdict">赛道缺口在哪</a></li></ul></li>
+      <li class="lv1"><a href="#s2"><i>§2</i><b>从痛点到 P0</b></a>
+        <ul><li><a href="#context">行业与用户背景</a></li>
+            <li><a href="#pains">两个痛点，两个指标</a></li>
+            <li><a href="#p0s">识别两个 P0 Skill</a></li></ul></li>
+      <li class="lv1"><a href="#s3"><i>§3</i><b>工程链路</b></a>
+        <ul><li><a href="#pipeline">Agent 判断 · 脚本执行</a></li>
+            <li><a href="#kinds">四类信息的分工</a></li>
+            <li><a href="#skillrules">自由度与触发方式</a></li></ul></li>
+      <li class="lv1"><a href="#s4"><i>§4</i><b>怎么验证</b></a>
+        <ul><li><a href="#exp">横向对照 · 纵向迭代</a></li>
+            <li><a href="#metric">元素完整率口径</a></li>
+            <li><a href="#downstream">下游视频反测</a></li></ul></li>
+      <li class="lv1"><a href="#s5"><i>§5</i><b>一个具体 case</b></a>
+        <ul><li><a href="#casebox">校园悬疑女主</a></li></ul></li>
+      <li class="lv1"><a href="#s6"><i>§6</i><b>思考与感悟</b></a>
+        <ul><li><a href="#takes">四条沉淀</a></li>
+            <li><a href="#formula">一句话方法论</a></li></ul></li>
     </ol>
-    <div class="toc-sig">颜雍颀</div>
   </nav>
 </aside>
 
@@ -479,7 +509,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
   </div>
 
-  <div class="rivals">
+  <div class="rivals" id="rivals">
     <div class="rival">
       <div class="rn">第一类</div>
       <h4>传统剪辑工具</h4>
@@ -513,7 +543,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
   </div>
 
-  <div class="verdict">
+  <div class="verdict" id="verdict">
     <div class="lbl">市场判断</div>
     <p>真正缺的不是又一个单点生成工具，而是一个 AI 原生、可控、可复用的内容生产工作台。</p>
   </div>
@@ -530,7 +560,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </p>
   </div>
 
-  <div class="context-bar">
+  <div class="context-bar" id="context">
     <div>
       <div class="ck">行业侧</div>
       <div class="cv">微短剧是<b>高频上新、投流驱动、对成本和周期极其敏感</b>的内容生产场景。据中国网络视听协会《中国微短剧行业发展白皮书（2024）》，2024 年市场规模预计 <b>504.4 亿元</b>，有望首次超过内地电影票房的 470 亿元。</div>
@@ -545,7 +575,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
   </div>
 
-  <div class="chain">
+  <div class="chain" id="pains">
     <div class="pain one">
       <div class="ph">
         <div class="tag">痛点一</div>
@@ -575,7 +605,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 
   <div class="arrow-down">↓ ↓</div>
 
-  <div class="p0s">
+  <div class="p0s" id="p0s">
     <div class="p0">
       <span class="badge">P0 · 上游</span>
       <h3>角色设定图 Skill</h3>
@@ -607,7 +637,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </p>
   </div>
 
-  <div class="pipe">
+  <div class="pipe" id="pipeline">
     <div class="pipe-flow">
       <div class="pf">
         <div class="pk">输入</div>
@@ -631,7 +661,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
   </div>
 
-  <div class="kinds">
+  <div class="kinds" id="kinds">
     <div class="kind k1">
       <div class="kl">
         <div class="kt">连续视觉量</div>
@@ -677,7 +707,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
   </div>
 
-  <div class="split">
+  <div class="split" id="skillrules">
     <div>
       <h4>怎么决定 Skill 的自由度</h4>
       <ul>
@@ -707,7 +737,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </p>
   </div>
 
-  <div class="exp">
+  <div class="exp" id="exp">
     <!-- 横向 -->
     <div class="expcard">
       <div class="eh">
@@ -773,7 +803,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
   </div>
 
-  <div class="metric-def">
+  <div class="metric-def" id="metric">
     <h4>元素完整率是怎么算的</h4>
     <p>
       先根据用户 brief 和参考图，拆出一组<b>应该出现的元素</b>，再统计生成结果里实际保留下来的比例。
@@ -790,7 +820,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </p>
   </div>
 
-  <div class="downstream">
+  <div class="downstream" id="downstream">
     <div class="lbl">最关键的一步</div>
     <h4>不停在上游看图，用下游视频表现反测上游 Skill</h4>
     <p>
@@ -822,7 +852,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     <p class="lede">这个 case 完整走了一遍上面所有的判断，也是最能说明「为什么要用下游反测上游」的一个。</p>
   </div>
 
-  <div class="case">
+  <div class="case" id="casebox">
     <div class="case-brief">
       <div class="lbl">用户 BRIEF</div>
       <p class="bq">一个校园悬疑女主：18 岁，冷感、警惕，蓝黑短发，左眼下有一颗泪痣，穿深蓝色校服外套，胸前有银色校徽，随身带一个银色怀表。</p>
@@ -881,7 +911,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     <h2>这段经历里我真正沉下来的四件事</h2>
   </div>
 
-  <div class="takes">
+  <div class="takes" id="takes">
     <div class="take">
       <div class="tn">01</div>
       <div>
@@ -912,7 +942,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
   </div>
 
-  <div class="formula">
+  <div class="formula" id="formula">
     <div class="fh">一句话方法论</div>
     <div class="fg">
       <div class="fi f1"><div class="ft">连续量靠像素锚</div><div class="fd">颜色、材质、光影交给参考图</div></div>
