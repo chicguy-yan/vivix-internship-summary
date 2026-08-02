@@ -350,7 +350,10 @@ section { padding: 76px 0; border-top: 1px solid var(--rule); }
   font-weight: 400; }
 
 footer { padding: 40px 0 64px; border-top: 1px solid var(--rule); }
-footer p { font-size: 13px; color: var(--ink-3); max-width: 50em; }
+footer .sig-name { font-family: var(--display); font-size: 21px; font-weight: 700; }
+footer .sig-role { font-size: 14px; color: var(--ink-2); margin-top: 6px; max-width: none; }
+footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; margin-top: 22px;
+  padding-top: 18px; border-top: 1px solid var(--rule-soft); }
 
 /* ═══════════════════════════════════ 响应式 */
 @media (max-width: 860px) {
@@ -875,7 +878,11 @@ footer p { font-size: 13px; color: var(--ink-3); max-width: 50em; }
 </section>
 
 <footer>
-  <p>AI 视频创作 Agent · Skill 设计与开发 ｜ 围绕用户体验与成片质量两个北极星指标 ｜ 竞品拆解 → 用户研究 → P0 判断 → Skill 开发 → 对照实验 → 下游反测</p>
+  <div class="sig">
+    <div class="sig-name">颜雍颀</div>
+    <p class="sig-role">AI 产品经理方向 ｜ 清华大学 环境科学与新能源技术 硕士在读</p>
+  </div>
+  <p class="sig-path">AI 视频创作 Agent · Skill 设计与开发 ｜ 竞品拆解 → 用户研究 → P0 判断 → Skill 开发 → 对照实验 → 下游反测</p>
 </footer>
 
 </div>
