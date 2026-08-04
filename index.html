@@ -3,980 +3,481 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="AI 视频创作 Agent · Skill 设计与开发：竞品判断 → 两大痛点 → 两个 P0 Skill → 工程链路 → 对照实验 → 思考沉淀。">
+<meta name="description" content="视频创作 Agent 的角色设定图 Skill：从想错到改对的过程，以及怎么验证它真的有用。">
 <meta name="color-scheme" content="light">
-<title>AI 视频创作 Agent · Skill 设计与开发</title>
+<title>角色设定图 Skill · 从想错到改对</title>
 
 <style>
-/* ═══════════════════════════════════════════════════════════════
-   TOKENS
-   四色语义直接来自项目本身——四类信息，四种承载方式：
-   铜褐=参考图像素 · 青蓝=文字锁定 · 苔绿=空间骨架 · 石墨=脚本常量
-   ═══════════════════════════════════════════════════════════════ */
-/* 单一亮色主题：莫兰迪自配色板
-   语义四色 = 四类信息的承载方式；另两色为非语义装饰 */
+/* ══════════════════ TOKENS · 莫兰迪单一亮色 ══════════════════ */
 :root {
-  --ground:    #F5F3EF;
-  --surface:   #FDFCFA;
-  --surface-2: #F8F6F2;
-  --ink:       #37332F;
-  --ink-2:     #6B655E;
-  --ink-3:     #968F86;
-  --rule:      #E2DCD3;
-  --rule-soft: #EFEAE3;
+  --ground:#F5F3EF; --surface:#FDFCFA; --surface-2:#F8F6F2;
+  --ink:#37332F; --ink-2:#6B655E; --ink-3:#968F86;
+  --rule:#E2DCD3; --rule-soft:#EFEAE3;
 
-  --pixel:   #9A6E56;  --pixel-tint:   #F2E5DA;  --pixel-edge:   #D8C0AD;  /* 陶土 · 参考图像素 */
-  --text:    #5F7488;  --text-tint:    #E3E9EE;  --text-edge:    #BAC6D0;  /* 雾蓝 · 文字锁定 */
-  --space:   #667659;  --space-tint:   #E6ECE0;  --space-edge:   #BFCBB6;  /* 鼠尾草 · 空间骨架 */
-  --script:  #6B6459;  --script-tint:  #EDE8E0;  --script-edge:  #CCC5B9;  /* 暖灰褐 · 脚本常量 */
+  --pixel:#9A6E56;  --pixel-tint:#F2E5DA;  --pixel-edge:#D8C0AD;   /* 陶土 · 像素 */
+  --text:#5F7488;   --text-tint:#E3E9EE;   --text-edge:#BAC6D0;    /* 雾蓝 · 文字 */
+  --space:#667659;  --space-tint:#E6ECE0;  --space-edge:#BFCBB6;   /* 鼠尾草 · 空间 */
+  --script:#6B6459; --script-tint:#EDE8E0; --script-edge:#CCC5B9;  /* 暖灰褐 · 脚本 */
 
-  --rose:    #9B7273;  --rose-tint:    #F1E4E4;  --rose-edge:    #D9C1C1;  /* 灰玫瑰 · 装饰 */
-  --mustard: #94764A;  --mustard-tint: #F2EADA;  --mustard-edge: #D7C7A9;  /* 灰芥末 · 装饰 */
+  --shadow:0 1px 2px rgba(90,80,70,.06), 0 10px 26px -14px rgba(90,80,70,.18);
+  --shadow-lift:0 2px 6px rgba(90,80,70,.10), 0 18px 36px -16px rgba(90,80,70,.28);
 
-  --shadow:      0 1px 2px rgba(90,80,70,.06), 0 10px 26px -14px rgba(90,80,70,.18);
-  --shadow-lift: 0 2px 6px rgba(90,80,70,.10), 0 18px 36px -16px rgba(90,80,70,.28);
-
-  --display: "Songti SC", "STSong", "Noto Serif CJK SC", "Source Han Serif SC", Georgia, serif;
-  --body: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", -apple-system, system-ui, sans-serif;
-  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
-
-  --measure: 36em;
+  --display:"Songti SC","STSong","Noto Serif CJK SC","Source Han Serif SC",Georgia,serif;
+  --body:"PingFang SC","Hiragino Sans GB","Microsoft YaHei",-apple-system,system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
+  --measure:33em;
 }
 
-/* ═══════════════════════════════════ BASE */
-* { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
-body { margin: 0; background: var(--ground); color: var(--ink);
-  font-family: var(--body); font-size: 16px; line-height: 1.8; -webkit-font-smoothing: antialiased; }
+/* ══════════════════ BASE ══════════════════ */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--ground);color:var(--ink);
+  font-family:var(--body);font-size:16.5px;line-height:1.85;-webkit-font-smoothing:antialiased}
+p{margin:0;max-width:var(--measure)}
+h1,h2,h3,h4{margin:0;text-wrap:balance;font-weight:600}
+b{font-weight:600;color:var(--ink)}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--pixel);outline-offset:3px;border-radius:2px}
+.mono{font-family:var(--mono);font-size:.92em}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-3)}
 
-/* ═══════════════════════════════════ 布局：左侧目录 + 正文 */
-.layout { max-width: 1380px; margin: 0 auto; padding: 0 26px;
-  display: grid; grid-template-columns: 194px minmax(0, 1fr); gap: 58px; align-items: start; }
-.content { min-width: 0; }
+.flow{display:grid;gap:22px}
 
-.toc { position: sticky; top: 0; padding: 96px 0 40px;
-  max-height: 100vh; overflow-y: auto; scrollbar-width: thin;
-  scrollbar-color: var(--rule) transparent; }
-.toc::-webkit-scrollbar { width: 4px; }
-.toc::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 2px; }
+/* ══════════════════ 布局 ══════════════════ */
+.layout{max-width:1300px;margin:0 auto;padding:0 26px;
+  display:grid;grid-template-columns:186px minmax(0,1fr);gap:64px;align-items:start}
+.content{min-width:0;max-width:760px}
 
-.toc-top { display: block; text-decoration: none; color: var(--ink);
-  font-family: var(--display); font-size: 15.5px; font-weight: 700; line-height: 1.5;
-  padding-bottom: 15px; border-bottom: 1px solid var(--rule); }
-.toc-top span { display: block; font-family: var(--body); font-size: 12px;
-  font-weight: 400; color: var(--ink-3); margin-top: 4px; }
-.toc-top:hover { color: var(--pixel); }
+.toc{position:sticky;top:0;padding:100px 0 40px;max-height:100vh;overflow-y:auto;
+  scrollbar-width:thin;scrollbar-color:var(--rule) transparent}
+.toc::-webkit-scrollbar{width:4px}
+.toc::-webkit-scrollbar-thumb{background:var(--rule);border-radius:2px}
+.toc-top{display:block;text-decoration:none;color:var(--ink);font-family:var(--display);
+  font-size:15px;font-weight:700;line-height:1.5;padding-bottom:15px;border-bottom:1px solid var(--rule)}
+.toc-top span{display:block;font-family:var(--body);font-size:11.5px;font-weight:400;
+  color:var(--ink-3);margin-top:4px}
+.toc-top:hover{color:var(--pixel)}
+.toc ol,.toc ul{list-style:none;margin:0;padding:0}
+.toc ol{margin-top:18px;display:grid;gap:16px}
+.toc a{display:block;text-decoration:none;color:var(--ink-2);border-left:2px solid transparent;
+  transition:color .16s ease,border-color .16s ease}
+.toc .lv1>a{display:flex;gap:9px;align-items:baseline;font-size:14px;line-height:1.45;
+  padding-left:11px;border-left-color:var(--rule)}
+.toc .lv1>a i{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);flex:0 0 auto}
+.toc .lv1>a b{font-family:var(--display);font-weight:700;color:var(--ink)}
+.toc .lv1>a:hover,.toc .lv1>a.active{border-left-color:var(--pixel)}
+.toc .lv1>a:hover b,.toc .lv1>a:hover i,
+.toc .lv1>a.active b,.toc .lv1>a.active i{color:var(--pixel)}
+.toc .lv1 ul{margin-top:7px;display:grid;gap:1px}
+.toc .lv1 ul a{font-size:12.5px;line-height:1.5;color:var(--ink-3);
+  padding:3px 8px 3px 11px;border-left-color:var(--rule-soft)}
+.toc .lv1 ul a:hover{color:var(--pixel);border-left-color:var(--pixel);background:var(--pixel-tint)}
 
-.toc ol, .toc ul { list-style: none; margin: 0; padding: 0; }
-.toc ol { margin-top: 16px; display: grid; gap: 14px; }
-.toc a { display: block; text-decoration: none; color: var(--ink-2);
-  border-left: 2px solid transparent;
-  transition: color .16s ease, border-color .16s ease; }
+section{padding:74px 0;border-top:1px solid var(--rule)}
+section[id],[id]{scroll-margin-top:26px}
+.sec-head{margin-bottom:36px}
+.sec-head h2{font-family:var(--display);font-size:clamp(24px,3.2vw,32px);margin-top:10px;line-height:1.4}
 
-/* 一级：章节 */
-.toc .lv1 > a { display: flex; gap: 9px; align-items: baseline;
-  font-size: 14.5px; line-height: 1.45; padding: 0 0 0 11px;
-  border-left-color: var(--rule); }
-.toc .lv1 > a i { font-style: normal; font-family: var(--mono); font-size: 10.5px;
-  letter-spacing: .06em; color: var(--ink-3); flex: 0 0 auto; }
-.toc .lv1 > a b { font-family: var(--display); font-weight: 700; color: var(--ink); }
-.toc .lv1 > a:hover { border-left-color: var(--pixel); }
-.toc .lv1 > a:hover b, .toc .lv1 > a:hover i { color: var(--pixel); }
+/* ══════════════════ HERO ══════════════════ */
+.hero{padding:92px 0 66px}
+.hero .row{display:flex;gap:13px;align-items:center;flex-wrap:wrap;margin-bottom:34px}
+.hero .row .sep{width:24px;height:1px;background:var(--rule)}
+.hero h1{font-family:var(--display);font-weight:700;font-size:clamp(28px,4.6vw,50px);
+  line-height:1.32;letter-spacing:-.01em;max-width:15em}
+.hero h1 em{font-style:normal;color:var(--pixel)}
+.hero .sub{margin-top:26px;font-size:17px;color:var(--ink-2);max-width:31em}
+.hero .facts{margin-top:40px;padding-top:26px;border-top:1px solid var(--rule);
+  font-family:var(--display);font-size:17.5px;line-height:1.95;max-width:34em}
+.hero .facts n{font-style:normal;font-weight:700;color:var(--pixel);
+  font-variant-numeric:tabular-nums}
 
-/* 二级：子节 */
-.toc .lv1 ul { margin-top: 7px; display: grid; gap: 1px; }
-.toc .lv1 ul a { font-size: 12.5px; line-height: 1.5; color: var(--ink-3);
-  padding: 3px 8px 3px 11px; border-left-color: var(--rule-soft); }
-.toc .lv1 ul a:hover { color: var(--pixel); border-left-color: var(--pixel);
-  background: var(--pixel-tint); }
+/* ══════════════════ 零件 ══════════════════ */
+.lede{color:var(--ink-2);max-width:34em}
+.aside-note{margin-top:26px;border-left:2px solid var(--rule);padding:2px 0 2px 18px;
+  font-size:14.5px;color:var(--ink-3);max-width:36em}
+.aside-note b{color:var(--ink-2);font-weight:600}
 
-section[id] { scroll-margin-top: 24px; }
-[id="rivals"], [id="verdict"], [id="context"], [id="pains"], [id="p0s"],
-[id="pipeline"], [id="kinds"], [id="skillrules"], [id="exp"], [id="metric"],
-[id="downstream"], [id="casebox"], [id="takes"], [id="formula"] { scroll-margin-top: 28px; }
-p { margin: 0; max-width: var(--measure); }
-h1,h2,h3,h4 { margin: 0; text-wrap: balance; font-weight: 600; }
-b { font-weight: 600; color: var(--ink); }
-:focus-visible { outline: 2px solid var(--pixel); outline-offset: 3px; border-radius: 2px; }
-.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .16em;
-  text-transform: uppercase; color: var(--ink-3); }
-.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.pair{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:30px}
+.card{background:var(--surface);border:1px solid var(--rule);border-radius:3px;padding:20px 22px;
+  box-shadow:var(--shadow);transition:transform .22s cubic-bezier(.2,.7,.3,1),box-shadow .22s ease}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-lift)}
+.card .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.11em;color:var(--pixel)}
+.card h3{font-family:var(--display);font-size:19px;font-weight:700;margin-top:8px}
+.card p{font-size:14.5px;color:var(--ink-2);margin-top:11px;max-width:none}
 
-section { padding: 76px 0; border-top: 1px solid var(--rule); }
-.sec-head { margin-bottom: 40px; }
-.sec-head h2 { font-family: var(--display); font-size: clamp(24px, 3.2vw, 33px); margin-top: 11px; line-height: 1.35; }
-.sec-head .lede { margin-top: 15px; color: var(--ink-2); max-width: 40em; font-size: 16.5px; }
+/* 四类信息 */
+.kinds{display:grid;gap:12px;margin-top:28px}
+.kind{display:grid;grid-template-columns:152px 1fr;border:1px solid var(--rule);
+  border-radius:3px;background:var(--surface);overflow:hidden;box-shadow:var(--shadow);
+  transition:transform .22s cubic-bezier(.2,.7,.3,1),box-shadow .22s ease}
+.kind:hover{transform:translateY(-2px);box-shadow:var(--shadow-lift)}
+.kind .kl{padding:17px 18px;border-right:1px solid var(--rule)}
+.kind .kt{font-family:var(--display);font-size:16px;font-weight:700}
+.kind .ke{font-size:12.5px;color:var(--ink-3);margin-top:5px;line-height:1.6}
+.kind .kr{padding:17px 20px}
+.kind .carrier{display:inline-block;font-family:var(--mono);font-size:11.5px;
+  background:var(--surface);color:var(--ink);padding:2px 9px;border-radius:2px}
+.kind .kw{font-size:14.5px;color:var(--ink-2);margin-top:10px;max-width:none}
+.kind.k1{border-left:3px solid var(--pixel)}  .kind.k1 .kl{background:var(--pixel-tint)}
+.kind.k1 .kt{color:var(--pixel)}  .kind.k1 .carrier{border:1px solid var(--pixel-edge)}
+.kind.k2{border-left:3px solid var(--text)}   .kind.k2 .kl{background:var(--text-tint)}
+.kind.k2 .kt{color:var(--text)}   .kind.k2 .carrier{border:1px solid var(--text-edge)}
+.kind.k3{border-left:3px solid var(--space)}  .kind.k3 .kl{background:var(--space-tint)}
+.kind.k3 .kt{color:var(--space)}  .kind.k3 .carrier{border:1px solid var(--space-edge)}
+.kind.k4{border-left:3px solid var(--script)} .kind.k4 .kl{background:var(--script-tint)}
+.kind.k4 .kt{color:var(--script)} .kind.k4 .carrier{border:1px solid var(--script-edge)}
 
-/* ═══════════════════════════════════ HERO */
-.hero { padding: 88px 0 70px; }
-.hero .eyebrow-row { display: flex; gap: 13px; align-items: center; flex-wrap: wrap; margin-bottom: 32px; }
-.hero .eyebrow-row .sep { width: 24px; height: 1px; background: var(--rule); }
-.hero h1 { font-family: var(--display); font-weight: 700;
-  font-size: clamp(29px, 5vw, 54px); line-height: 1.3; letter-spacing: -.01em; max-width: 17em; }
-.hero h1 em { font-style: normal; color: var(--pixel); }
-.hero .sub { margin-top: 26px; font-size: 17px; color: var(--ink-2); max-width: 33em; }
+/* 三路对照条 */
+.bars{display:grid;gap:16px;margin-top:28px;max-width:34em}
+.bar .bl{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.bar .bn{font-size:14.5px;line-height:1.5}
+.bar .bn small{display:block;color:var(--ink-3);font-size:12.5px}
+.bar .bv{font-family:var(--display);font-size:21px;font-weight:700;font-variant-numeric:tabular-nums}
+.bar .track{height:7px;background:var(--rule-soft);border-radius:4px;margin-top:8px;overflow:hidden}
+.bar .fill{height:100%;border-radius:4px;width:0;transition:width 1.1s cubic-bezier(.22,.8,.28,1)}
+.bars.in .fill{width:var(--w)}
+.bar.b1 .bv{color:var(--ink-3)} .bar.b1 .fill{background:var(--ink-3)}
+.bar.b2 .bv{color:var(--text)}  .bar.b2 .fill{background:var(--text)}
+.bar.b3 .bv{color:var(--pixel)} .bar.b3 .fill{background:var(--pixel)}
 
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1px; margin-top: 50px; background: var(--rule);
-  border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
-.stat { background: var(--surface); padding: 19px 21px; }
-.stat .k { font-family: var(--mono); font-size: 10.5px; letter-spacing: .11em;
-  text-transform: uppercase; color: var(--ink-3); }
-.stat .v { font-family: var(--display); font-size: 26px; font-weight: 700; margin-top: 8px;
-  font-variant-numeric: tabular-nums; letter-spacing: -.01em; line-height: 1.3; }
-.stat .v .sm { font-family: var(--body); font-size: 14px; font-weight: 400; color: var(--ink-3); }
-.stat .v .arrow { color: var(--ink-3); font-weight: 400; margin: 0 4px; }
-.stat .v .hi { color: var(--pixel); }
-.stat .note { font-family: var(--mono); font-size: 10.5px; color: var(--ink-3); margin-top: 6px; }
+/* 管线 */
+.pipe{margin-top:28px;border:1px solid var(--rule);border-radius:3px;background:var(--surface);
+  padding:20px;box-shadow:var(--shadow);overflow-x:auto}
+.pipe-flow{display:flex;align-items:stretch;min-width:600px}
+.pf{flex:1;padding:13px 15px;border:1px solid var(--rule);border-radius:3px;background:var(--surface-2)}
+.pf .pk{font-family:var(--mono);font-size:10px;letter-spacing:.11em;color:var(--ink-3)}
+.pf .pv{font-size:13px;margin-top:6px;line-height:1.6}
+.pf.agent{border-color:var(--text-edge);background:var(--text-tint)}
+.pf.agent .pk{color:var(--text)}
+.pf.script{border-color:var(--script-edge);background:var(--script-tint)}
+.pf.script .pk{color:var(--script)}
+.pipe-arrow{display:flex;align-items:center;padding:0 10px;color:var(--ink-3);font-size:13px}
 
-/* ═══════════════════════════════════ 竞品四类 */
-.rivals { display: grid; grid-template-columns: repeat(auto-fit, minmax(248px, 1fr)); gap: 16px; }
-.rival { background: var(--surface); border: 1px solid var(--rule); border-radius: 3px;
-  padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 12px; }
-.rival .rn { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; color: var(--ink-3); }
-.rival h4 { font-family: var(--display); font-size: 18px; font-weight: 700; }
-.rival .ex { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); margin-top: -8px; }
-.rival .row2 { display: flex; gap: 9px; align-items: flex-start; font-size: 14px; line-height: 1.7; }
-.rival .row2 .mk { font-family: var(--mono); font-size: 11px; flex: 0 0 auto;
-  padding: 1px 6px; border-radius: 2px; margin-top: 3px; }
-.rival .pro .mk { background: var(--space-tint); color: var(--space); }
-.rival .con .mk { background: var(--pixel-tint); color: var(--pixel); }
-.rival .row2 span:last-child { color: var(--ink-2); }
+/* 图位占位 */
+.figslot{margin:30px 0;border:1px dashed var(--pixel-edge);border-radius:3px;
+  background:var(--pixel-tint);padding:24px}
+.figslot .fk{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--pixel)}
+.figslot .ft{font-family:var(--display);font-size:17px;font-weight:700;margin-top:8px}
+.figslot .fd{font-size:14px;color:var(--ink-2);margin-top:8px;max-width:38em}
+.figslot .fm{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:10px}
 
-.axes { margin-top: 26px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.axes .lbl { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .1em; }
-.axes .ax { font-size: 13.5px; color: var(--ink-2); border: 1px solid var(--rule);
-  background: var(--surface); border-radius: 2px; padding: 4px 11px; }
+/* 收尾 */
+.takes{margin-top:8px}
+.take{padding:26px 0;border-bottom:1px solid var(--rule)}
+.take:last-child{border-bottom:0}
+.take .tn{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;color:var(--ink-3)}
+.take h3{font-family:var(--display);font-size:21px;font-weight:700;margin-top:9px;line-height:1.5}
+.take p{margin-top:12px;color:var(--ink-2)}
+.take.open h3,.take.open .tn{color:var(--pixel)}
 
-.verdict { margin-top: 30px; border-left: 3px solid var(--pixel); padding: 6px 0 6px 20px; }
-.verdict .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em;
-  color: var(--pixel); text-transform: uppercase; }
-.verdict p { font-family: var(--display); font-size: clamp(18px, 2.4vw, 23px); font-weight: 700;
-  line-height: 1.55; margin-top: 9px; max-width: 27em; }
+footer{padding:42px 0 70px;border-top:1px solid var(--rule)}
+footer .n{font-family:var(--display);font-size:20px;font-weight:700}
+footer .r{font-size:14px;color:var(--ink-2);margin-top:6px}
 
-/* ═══════════════════════════════════ 因果链 */
-.chain { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.pain { background: var(--surface); border: 1px solid var(--rule); border-radius: 3px;
-  overflow: hidden; box-shadow: var(--shadow); }
-.pain > .ph { padding: 17px 21px; border-bottom: 1px solid var(--rule); }
-.pain.one > .ph { background: var(--text-tint); }
-.pain.two > .ph { background: var(--pixel-tint); }
-.pain .ph .tag { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; }
-.pain.one .ph .tag { color: var(--text); } .pain.two .ph .tag { color: var(--pixel); }
-.pain .ph h3 { font-family: var(--display); font-size: 21px; font-weight: 700; margin-top: 6px; }
-.pain .ph .why { font-size: 14px; color: var(--ink-2); margin-top: 8px; max-width: none; }
-.steps { padding: 4px 21px 20px; }
-.step { padding: 15px 0; border-bottom: 1px dashed var(--rule-soft); }
-.step:last-child { border-bottom: 0; padding-bottom: 2px; }
-.step .sk { font-family: var(--mono); font-size: 10.5px; letter-spacing: .1em;
-  text-transform: uppercase; color: var(--ink-3); }
-.step .sv { font-size: 14.5px; color: var(--ink-2); margin-top: 6px; max-width: none; }
-.step.metric .sv { font-family: var(--display); font-size: 18px; font-weight: 700; color: var(--ink); }
-.pain.one .step.metric .sv { color: var(--text); }
-.pain.two .step.metric .sv { color: var(--pixel); }
+.reveal{opacity:0;transform:translateY(14px);
+  transition:opacity .6s ease,transform .6s cubic-bezier(.2,.7,.3,1)}
+.reveal.in{opacity:1;transform:none}
 
-.arrow-down { text-align: center; color: var(--ink-3); font-size: 15px; margin: 22px 0; letter-spacing: .3em; }
-
-.p0s { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.p0 { border: 1px solid var(--pixel-edge); background: var(--pixel-tint);
-  border-radius: 3px; padding: 22px; }
-.p0 .badge { display: inline-block; font-family: var(--mono); font-size: 10px; font-weight: 700;
-  letter-spacing: .1em; background: var(--surface); color: var(--ink); border: 1px solid var(--pixel-edge);
-  padding: 2px 8px; border-radius: 2px; }
-.p0 h3 { font-family: var(--display); font-size: 21px; font-weight: 700; margin-top: 11px; }
-.p0 p { font-size: 14.5px; color: var(--ink-2); margin-top: 10px; max-width: none; }
-.p0 .quote { margin-top: 12px; font-size: 14px; color: var(--ink-2); border-left: 2px solid var(--pixel-edge);
-  padding-left: 13px; max-width: none; }
-.p0 .quote i { font-style: normal; color: var(--ink); }
-
-.notdo { margin-top: 28px; border: 1px dashed var(--rule); border-radius: 3px; padding: 18px 21px;
-  background: var(--surface-2); }
-.notdo .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; color: var(--ink-3); }
-.notdo p { font-size: 14.5px; color: var(--ink-2); margin-top: 8px; max-width: none; }
-
-.context-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr));
-  gap: 1px; background: var(--rule); border: 1px solid var(--rule);
-  border-radius: 3px; overflow: hidden; margin-bottom: 38px; }
-.context-bar > div { background: var(--surface); padding: 18px 21px; }
-.context-bar .ck { font-family: var(--mono); font-size: 10.5px; letter-spacing: .11em; color: var(--ink-3); }
-.context-bar .cv { font-size: 14.5px; color: var(--ink-2); margin-top: 8px; max-width: none; }
-.context-bar .cv b { color: var(--ink); }
-
-/* ═══════════════════════════════════ 四类信息 */
-.pipe { background: var(--surface); border: 1px solid var(--rule); border-radius: 3px;
-  padding: 22px; box-shadow: var(--shadow); margin-bottom: 34px; overflow-x: auto; }
-.pipe-flow { display: flex; align-items: stretch; gap: 0; min-width: 640px; }
-.pf { flex: 1; padding: 14px 16px; border: 1px solid var(--rule); border-radius: 3px;
-  background: var(--surface-2); }
-.pf .pk { font-family: var(--mono); font-size: 10px; letter-spacing: .11em; color: var(--ink-3); }
-.pf .pv { font-size: 13.5px; margin-top: 6px; line-height: 1.6; }
-.pf.agent { border-color: var(--text-edge); background: var(--text-tint); }
-.pf.agent .pk { color: var(--text); }
-.pf.script { border-color: var(--script-edge); background: var(--script-tint); }
-.pf.script .pk { color: var(--script); }
-.pipe-arrow { display: flex; align-items: center; padding: 0 11px; color: var(--ink-3); font-size: 14px; }
-
-.kinds { display: grid; gap: 14px; }
-.kind { display: grid; grid-template-columns: 168px 1fr; gap: 0;
-  border: 1px solid var(--rule); border-radius: 3px; background: var(--surface);
-  overflow: hidden; box-shadow: var(--shadow); }
-.kind .kl { padding: 18px 18px; border-right: 1px solid var(--rule); }
-.kind .kl .kt { font-family: var(--display); font-size: 17px; font-weight: 700; }
-.kind .kl .ke { font-size: 12.5px; color: var(--ink-3); margin-top: 6px; line-height: 1.6; }
-.kind .kr { padding: 18px 20px; }
-.kind .carrier { font-family: var(--mono); font-size: 11.5px; letter-spacing: .05em;
-  display: inline-block; padding: 2px 9px; border-radius: 2px; }
-.kind .kwhy { font-size: 14.5px; color: var(--ink-2); margin-top: 11px; max-width: none; }
-.kind.k1 { border-left: 3px solid var(--pixel); }
-.kind.k1 .kl { background: var(--pixel-tint); } .kind.k1 .kt { color: var(--pixel); }
-.kind.k1 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--pixel-edge); }
-.kind.k2 { border-left: 3px solid var(--text); }
-.kind.k2 .kl { background: var(--text-tint); } .kind.k2 .kt { color: var(--text); }
-.kind.k2 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--text-edge); }
-.kind.k3 { border-left: 3px solid var(--space); }
-.kind.k3 .kl { background: var(--space-tint); } .kind.k3 .kt { color: var(--space); }
-.kind.k3 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--space-edge); }
-.kind.k4 { border-left: 3px solid var(--script); }
-.kind.k4 .kl { background: var(--script-tint); } .kind.k4 .kt { color: var(--script); }
-.kind.k4 .carrier { background: var(--surface); color: var(--ink); border: 1px solid var(--script-edge); }
-
-.split { margin-top: 34px; display: grid; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); gap: 20px; }
-.split > div { border: 1px solid var(--rule); border-radius: 3px; background: var(--surface); padding: 20px; }
-.split h4 { font-family: var(--display); font-size: 17px; font-weight: 700; }
-.split ul { margin: 12px 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
-.split li { font-size: 14px; color: var(--ink-2); padding-left: 17px; position: relative; line-height: 1.7; }
-.split li::before { content: "—"; position: absolute; left: 0; color: var(--ink-3); }
-
-/* ═══════════════════════════════════ 实验 */
-.exp { display: grid; grid-template-columns: 1fr 1fr; gap: 26px; align-items: start; }
-.expcard { border: 1px solid var(--rule); border-radius: 3px; background: var(--surface);
-  overflow: hidden; box-shadow: var(--shadow); }
-.expcard > .eh { padding: 18px 21px; border-bottom: 1px solid var(--rule); background: var(--surface-2); }
-.expcard .eh .et { font-family: var(--display); font-size: 19px; font-weight: 700; }
-.expcard .eh .eq { font-size: 13.5px; color: var(--ink-2); margin-top: 7px; max-width: none; }
-.expcard .eb { padding: 20px 21px; }
-
-.bars { display: grid; gap: 15px; }
-.bar .bl { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-.bar .bn { font-size: 14px; }
-.bar .bn small { display: block; color: var(--ink-3); font-size: 12.5px; margin-top: 2px; }
-.bar .bv { font-family: var(--display); font-size: 20px; font-weight: 700;
-  font-variant-numeric: tabular-nums; }
-.bar .track { height: 7px; background: var(--rule-soft); border-radius: 4px; margin-top: 8px; overflow: hidden; }
-.bar .fill { height: 100%; border-radius: 4px; }
-.bar.b1 .bv { color: var(--ink-3); }   .bar.b1 .fill { background: var(--ink-3); }
-.bar.b2 .bv { color: var(--text); }    .bar.b2 .fill { background: var(--text); }
-.bar.b3 .bv { color: var(--pixel); }   .bar.b3 .fill { background: var(--pixel); }
-
-.vers { display: grid; gap: 0; }
-.ver { padding: 16px 0; border-bottom: 1px dashed var(--rule-soft); }
-.ver:last-child { border-bottom: 0; padding-bottom: 0; }
-.ver .vh { display: flex; align-items: baseline; gap: 10px; }
-.ver .vn { font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--pixel); }
-.ver .vt { font-size: 15px; font-weight: 600; }
-.ver .vhit { font-size: 14px; color: var(--ink-2); margin-top: 8px; max-width: none; }
-.ver .vfix { font-size: 14px; color: var(--ink); margin-top: 8px; max-width: none;
-  border-left: 2px solid var(--pixel-edge); padding-left: 12px; }
-.ver .vfix .fl { font-family: var(--mono); font-size: 10px; letter-spacing: .1em;
-  color: var(--pixel); display: block; margin-bottom: 3px; }
-
-.metric-def { margin-top: 26px; border: 1px solid var(--rule); border-radius: 3px;
-  background: var(--surface); padding: 20px 22px; }
-.metric-def h4 { font-family: var(--mono); font-size: 11px; letter-spacing: .12em;
-  color: var(--ink-3); text-transform: uppercase; }
-.metric-def p { font-size: 14.5px; color: var(--ink-2); margin-top: 10px; max-width: 48em; }
-.metric-def .tiers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 13px; }
-.metric-def .tiers span { font-family: var(--mono); font-size: 11.5px; padding: 3px 10px;
-  border-radius: 2px; border: 1px solid var(--rule); color: var(--ink-2); }
-
-.downstream { margin-top: 26px; border: 1px solid var(--space-edge); background: var(--space-tint);
-  border-radius: 3px; padding: 22px; }
-.downstream .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; color: var(--space); }
-.downstream h4 { font-family: var(--display); font-size: 19px; font-weight: 700; margin-top: 8px; }
-.downstream p { font-size: 14.5px; color: var(--ink-2); margin-top: 10px; max-width: 46em; }
-.dims { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr)); gap: 14px; margin-top: 18px; }
-.dims > div { background: var(--surface); border: 1px solid var(--space-edge); border-radius: 3px; padding: 14px 16px; }
-.dims .dt { font-size: 14.5px; font-weight: 600; color: var(--space); }
-.dims .dd { font-size: 13px; color: var(--ink-2); margin-top: 6px; line-height: 1.65; }
-.downstream .res { margin-top: 18px; font-family: var(--display); font-size: 18px;
-  font-weight: 700; color: var(--space); }
-
-.honest-note { margin-top: 22px; font-size: 13.5px; color: var(--ink-3); max-width: 46em;
-  border-left: 2px solid var(--rule); padding-left: 15px; }
-.honest-note b { color: var(--ink-2); font-weight: 600; }
-
-/* ═══════════════════════════════════ case */
-.case { border: 1px solid var(--rule); border-radius: 3px; background: var(--surface);
-  overflow: hidden; box-shadow: var(--shadow); }
-.case-brief { padding: 22px 24px; border-bottom: 1px solid var(--rule); background: var(--surface-2); }
-.case-brief .lbl { font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; color: var(--ink-3); }
-.case-brief .bq { font-family: var(--display); font-size: 18px; line-height: 1.7; margin-top: 10px; max-width: 40em; }
-.case-brief .shots { margin-top: 14px; display: flex; gap: 9px; flex-wrap: wrap; }
-.case-brief .shots span { font-family: var(--mono); font-size: 11.5px; color: var(--ink-2);
-  border: 1px solid var(--rule); background: var(--surface); border-radius: 2px; padding: 3px 10px; }
-
-.case-problem { padding: 22px 24px; border-bottom: 1px solid var(--rule); }
-.case-problem .lead { font-size: 15px; max-width: 44em; }
-.bcs { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr)); gap: 13px; margin-top: 16px; }
-.bcs > div { border-left: 2px solid var(--pixel); padding-left: 14px; }
-.bcs .bt { font-size: 14px; font-weight: 600; color: var(--pixel); }
-.bcs .bd { font-size: 13.5px; color: var(--ink-2); margin-top: 5px; line-height: 1.65; }
-
-.arms { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
-  gap: 1px; background: var(--rule); }
-.arm { background: var(--surface); padding: 20px 22px; }
-.arm .an { font-family: var(--mono); font-size: 10.5px; letter-spacing: .11em; }
-.arm h4 { font-size: 15.5px; margin-top: 7px; font-weight: 600; }
-.arm p { font-size: 13.5px; color: var(--ink-2); margin-top: 9px; max-width: none; line-height: 1.7; }
-.arm.a1 .an { color: var(--ink-3); }
-.arm.a2 .an { color: var(--text); }
-.arm.a3 .an { color: var(--pixel); }
-.arm.a3 { background: var(--pixel-tint); }
-
-.case-result { padding: 22px 24px; border-top: 1px solid var(--rule); display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: 22px; }
-.case-result .rk { font-family: var(--mono); font-size: 10.5px; letter-spacing: .11em; color: var(--ink-3); }
-.case-result .rv { font-family: var(--display); font-size: 21px; font-weight: 700; margin-top: 8px; }
-.case-result .rv .arrow { color: var(--ink-3); font-weight: 400; margin: 0 4px; }
-.case-result .rv .hi { color: var(--pixel); }
-.case-result .rd { font-size: 13.5px; color: var(--ink-2); margin-top: 8px; max-width: none; }
-
-/* ═══════════════════════════════════ 收束 */
-.takes { display: grid; gap: 18px; }
-.take { display: grid; grid-template-columns: 44px 1fr; gap: 20px; align-items: start;
-  border-bottom: 1px solid var(--rule); padding-bottom: 18px; }
-.take:last-child { border-bottom: 0; }
-.take .tn { font-family: var(--display); font-size: 30px; font-weight: 700; color: var(--rule);
-  line-height: 1; font-variant-numeric: tabular-nums; }
-.take h3 { font-family: var(--display); font-size: 20px; font-weight: 700; line-height: 1.5; }
-.take p { font-size: 15px; color: var(--ink-2); margin-top: 10px; max-width: 44em; }
-
-.formula { margin-top: 34px; border: 1px solid var(--rule); border-radius: 3px;
-  background: var(--surface); overflow: hidden; }
-.formula .fh { padding: 15px 22px; border-bottom: 1px solid var(--rule); background: var(--surface-2);
-  font-family: var(--mono); font-size: 10.5px; letter-spacing: .12em; color: var(--ink-3); }
-.formula .fg { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px,1fr));
-  gap: 1px; background: var(--rule); }
-.formula .fi { background: var(--surface); padding: 20px 22px; }
-.formula .fi .ft { font-family: var(--display); font-size: 18px; font-weight: 700; }
-.formula .fi .fd { font-size: 13px; color: var(--ink-3); margin-top: 7px; line-height: 1.65; }
-.formula .f1 .ft { color: var(--pixel); } .formula .f2 .ft { color: var(--text); }
-.formula .f3 .ft { color: var(--space); } .formula .f4 .ft { color: var(--script); }
-
-.closing { margin-top: 40px; border-left: 3px solid var(--pixel); padding: 8px 0 8px 22px; }
-.closing p { font-family: var(--display); font-size: clamp(19px, 2.6vw, 26px); font-weight: 700;
-  line-height: 1.6; max-width: 24em; }
-.closing .src { font-size: 13.5px; color: var(--ink-3); margin-top: 14px; font-family: var(--body);
-  font-weight: 400; }
-
-footer { padding: 40px 0 64px; border-top: 1px solid var(--rule); }
-footer .sig-name { font-family: var(--display); font-size: 21px; font-weight: 700; }
-footer .sig-role { font-size: 14px; color: var(--ink-2); margin-top: 6px; max-width: none; }
-footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; margin-top: 22px;
-  padding-top: 18px; border-top: 1px solid var(--rule-soft); }
-
-/* ═══════════════════════════════════ 交互 */
-.rival, .stat, .p0, .expcard, .kind, .dims > div, .formula .fi, .context-bar > div {
-  transition: transform .22s cubic-bezier(.2,.7,.3,1), box-shadow .22s ease,
-              border-color .22s ease, background-color .22s ease; }
-.rival:hover, .p0:hover, .expcard:hover, .kind:hover {
-  transform: translateY(-3px); box-shadow: var(--shadow-lift); }
-.stat:hover, .dims > div:hover, .formula .fi:hover, .context-bar > div:hover {
-  background: var(--surface-2); }
-.rival:hover h4 { color: var(--pixel); }
-.take .tn { transition: color .22s ease; }
-.take:hover .tn { color: var(--pixel); }
-.arm { transition: background-color .22s ease; }
-.arm:hover { background: var(--surface-2); }
-.arm.a3:hover { background: var(--pixel-tint); }
-
-/* 条形图滚动入场 */
-.bar .fill { width: 0; transition: width 1.1s cubic-bezier(.22,.8,.28,1); }
-.bars.in .fill { width: var(--w); }
-
-/* 目录当前章节高亮（scroll-spy） */
-.toc .lv1 > a.active { border-left-color: var(--pixel); }
-.toc .lv1 > a.active b { color: var(--pixel); }
-.toc .lv1 > a.active i { color: var(--pixel); }
-
-/* 章节入场 */
-.reveal { opacity: 0; transform: translateY(14px);
-  transition: opacity .6s ease, transform .6s cubic-bezier(.2,.7,.3,1); }
-.reveal.in { opacity: 1; transform: none; }
-
-/* ═══════════════════════════════════ 响应式 */
-/* 窄屏收起目录栏：正文回到单列，避免挤压 */
-@media (max-width: 1040px) {
-  .layout { grid-template-columns: minmax(0, 1fr); gap: 0; max-width: 1120px; }
-  .toc { display: none; }
+/* ══════════════════ 响应式 ══════════════════ */
+@media (max-width:1040px){
+  .layout{grid-template-columns:minmax(0,1fr);gap:0;max-width:800px}
+  .toc{display:none}
 }
-@media (max-width: 860px) {
-  .chain, .p0s, .exp { grid-template-columns: 1fr; }
-  .kind { grid-template-columns: 1fr; }
-  .kind .kl { border-right: 0; border-bottom: 1px solid var(--rule); }
-  .hero { padding: 58px 0 50px; }
-  section { padding: 54px 0; }
-  .take { grid-template-columns: 34px 1fr; gap: 14px; }
-  .take .tn { font-size: 24px; }
+@media (max-width:720px){
+  .pair{grid-template-columns:1fr}
+  .kind{grid-template-columns:1fr}
+  .kind .kl{border-right:0;border-bottom:1px solid var(--rule)}
+  .hero{padding:60px 0 48px}
+  section{padding:54px 0}
 }
-@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation: none !important; transition: none !important; } }
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+}
 </style>
-
 </head>
 <body>
+
 <div class="layout">
 
 <aside class="toc" aria-label="目录">
   <nav>
-    <a class="toc-top" href="#top">AI 视频创作 Agent<span>Skill 设计与开发</span></a>
+    <a class="toc-top" href="#top">角色设定图 Skill<span>视频创作 Agent · 设计与开发</span></a>
     <ol>
-      <li class="lv1"><a href="#s1"><i>§1</i><b>市场判断</b></a>
-        <ul><li><a href="#rivals">四类竞品拆解</a></li>
-            <li><a href="#verdict">赛道缺口在哪</a></li></ul></li>
-      <li class="lv1"><a href="#s2"><i>§2</i><b>从痛点到 P0</b></a>
-        <ul><li><a href="#context">行业与用户背景</a></li>
-            <li><a href="#pains">两个痛点，两个指标</a></li>
-            <li><a href="#p0s">识别两个 P0 Skill</a></li></ul></li>
-      <li class="lv1"><a href="#s3"><i>§3</i><b>工程链路</b></a>
-        <ul><li><a href="#pipeline">Agent 判断 · 脚本执行</a></li>
-            <li><a href="#kinds">四类信息的分工</a></li>
-            <li><a href="#skillrules">自由度与触发方式</a></li></ul></li>
-      <li class="lv1"><a href="#s4"><i>§4</i><b>怎么验证</b></a>
-        <ul><li><a href="#exp">横向对照 · 纵向迭代</a></li>
-            <li><a href="#metric">元素完整率口径</a></li>
-            <li><a href="#downstream">下游视频反测</a></li></ul></li>
-      <li class="lv1"><a href="#s5"><i>§5</i><b>一个具体 case</b></a>
-        <ul><li><a href="#casebox">校园悬疑女主</a></li></ul></li>
-      <li class="lv1"><a href="#s6"><i>§6</i><b>思考与感悟</b></a>
-        <ul><li><a href="#takes">四条沉淀</a></li>
-            <li><a href="#formula">一句话方法论</a></li></ul></li>
+      <li class="lv1"><a href="#s1"><i>01</i><b>为什么是这两个 Skill</b></a>
+        <ul><li><a href="#rivals">四类工具都缺什么</a></li>
+            <li><a href="#pains">两个痛点</a></li>
+            <li><a href="#p0">P0 判断</a></li></ul></li>
+      <li class="lv1"><a href="#s2"><i>02</i><b>这个 Skill 长什么样</b></a>
+        <ul><li><a href="#pipeline">Agent 判断，脚本执行</a></li>
+            <li><a href="#kinds">四类信息的分工</a></li></ul></li>
+      <li class="lv1"><a href="#s3"><i>03</i><b>凭什么说它有用</b></a>
+        <ul><li><a href="#iter">三版是怎么改出来的</a></li>
+            <li><a href="#ab">三路对照</a></li>
+            <li><a href="#down">用下游反测上游</a></li></ul></li>
+      <li class="lv1"><a href="#s4"><i>04</i><b>学到什么</b></a></li>
     </ol>
   </nav>
 </aside>
 
 <div class="content" id="top">
 
-<!-- ══════════════════════════════ HERO ══════════════════════════════ -->
+<!-- ═════════════ HERO ═════════════ -->
 <header class="hero">
-  <div class="eyebrow-row">
-    <span class="eyebrow">AI 视频创作 Agent · Skill 设计与开发</span>
+  <div class="row">
+    <span class="eyebrow">视频创作 Agent · Skill 设计与开发</span>
     <span class="sep"></span>
-    <span class="eyebrow">面向大众创作者 · 短剧 / 漫剧场景</span>
+    <span class="eyebrow">短剧 / 漫剧场景</span>
   </div>
 
-  <h1>AI 视频创作缺的不是又一个生成工具，<br>是一个<em>可复用的内容生产工作台</em></h1>
+  <h1>创作者三分之一的时间，花在<em>同一个镜头反复重生成</em>上</h1>
 
   <p class="sub">
-    从竞品拆解和用户研究里找到两个核心痛点，落到两个 P0 Skill 上，
-    再用三路对照实验和下游视频反测，验证它们是不是真的有用。
+    我在一个面向大众创作者的 AI 视频创作 Agent 做 Skill 设计。
+    这页记的是其中一个 Skill——角色设定图生成——从我想错，到改对的过程。
   </p>
 
-  <div class="stats">
-    <div class="stat">
-      <div class="k">角色设定图 · 元素完整率</div>
-      <div class="v">70%<span class="arrow">→</span><span class="hi">85%</span></div>
-      <div class="note">3 版 Skill 迭代</div>
-    </div>
-    <div class="stat">
-      <div class="k">三路对照 · 边际增益</div>
-      <div class="v">50<span class="sm"> / </span>65<span class="sm"> / </span><span class="hi">75</span><span class="sm">%</span></div>
-      <div class="note">原话 / 裸 Agent / Agent+Skill</div>
-    </div>
-    <div class="stat">
-      <div class="k">下游视频反测</div>
-      <div class="v">≈ +10<span class="sm">%</span></div>
-      <div class="note">还原度 · 跨镜一致性 · 生动度</div>
-    </div>
-    <div class="stat">
-      <div class="k">评测数据集</div>
-      <div class="v">500<span class="sm">+ 样本</span></div>
-      <div class="note">单节点 / 连续节点 / 跨章节</div>
-    </div>
-  </div>
+  <p class="facts">
+    三版迭代之后，角色设定图的元素完整率从 <n>70%</n> 到 <n>85%</n>。
+    三路对照里，用户原话直喂是 <n>50%</n>，Agent 不带 Skill 是 <n>65%</n>。
+    下游视频的角色还原度和跨镜一致性，大概好 <n>10%</n>。
+  </p>
 </header>
 
-<!-- ══════════════════════════════ §1 市场 ══════════════════════════════ -->
+<!-- ═════════════ 01 ═════════════ -->
 <section id="s1">
   <div class="sec-head">
-    <span class="eyebrow">§1 · 市场判断</span>
-    <h2>拆竞品不是为了罗列工具，是为了判断链路卡在哪一段</h2>
-    <p class="lede">
-      我没有做功能清单对比，而是看每类产品背后代表的<b>生产范式</b>，
-      以及用户在标准流程之外的异常操作。看三个维度：
+    <span class="eyebrow">01</span>
+    <h2>为什么是这两个 Skill</h2>
+  </div>
+
+  <div class="flow" id="rivals">
+    <p>调研的时候我把市面上的工具装了一圈。ComfyUI 确实能把生成黑盒拆开，模型、节点、参数全交到用户手里——但没人愿意为了做一集短剧去学节点图。一键成片工具走另一个极端，输一句话进去就出片，出的是什么你管不着。</p>
+
+    <p>剪辑工具解决的是素材已经有了之后怎么剪，而 AI 短剧新增的麻烦恰恰在前面一步：素材本身生不稳。TapNow、Liblib 这类 Agent 画布最接近我想要的形态，节点从技术参数变成了影视素材，人和 Agent 能在一块画布上协作。但真做起来，角色和世界观的上下文还是得用户自己维护——每个分镜重新传一遍参考图，重新描述一遍这人长什么样。</p>
+
+    <p>我看的是三件事：用户对成片有多少控制权、生产效率有没有真的提升、剧本资产和上下文能不能贯穿全链路。四类工具，没有一类三样都占。</p>
+  </div>
+
+  <div class="flow" id="pains" style="margin-top:34px">
+    <p>用户研究里最扎眼的是一个数：创作者要花大约<b>三分之一的时间</b>，在同一个片段上反复重新生成。不是在想创意，是在跟模型的随机性较劲。</p>
+
+    <p>拆开看是两件事。<b>工作流断层</b>——同一个角色的素材反复上传、反复描述，工具里没有一个地方统摄短剧的世界观和角色设定。<b>成片不可控</b>——视频模型不天然理解连续剧对角色一致性的强约束，同一个人在不同镜头里会脸漂、衣服漂、身份标记丢。</p>
+
+    <p>对应两个指标：用户体验效率，成片质量可用性。</p>
+  </div>
+
+  <div id="p0">
+    <div class="pair">
+      <div class="card">
+        <div class="tag">P0 · 上游</div>
+        <h3>角色设定图</h3>
+        <p>同一个角色的脸、服装、道具、画风得在全局可复用，后面每个分镜才谈得上一致。这里锁不住，后面每一镜都在漂。</p>
+      </div>
+      <div class="card">
+        <div class="tag">P0 · 下游</div>
+        <h3>分镜提示词扩写</h3>
+        <p>创作者写的是「女主震惊地看向男主」，视频模型要的是主体、动作、景别、镜头运动、情绪、负面约束。这层翻译不稳，用户只能反复改 prompt。</p>
+      </div>
+    </div>
+
+    <p class="aside-note">
+      有些东西我主动没放进来：导演级的剧本拆解太重，许愿式一键成片方向就不对，音频切分是局部优化。
+      按钮消失、生成超时这类稳定性 bug，我划到工程质量，<b>不算 Skill 的缺口</b>。
     </p>
-    <div class="axes">
-      <span class="lbl">判断维度</span>
-      <span class="ax">用户对成片的控制权</span>
-      <span class="ax">生产效率有没有真的提升</span>
-      <span class="ax">剧本资产和上下文能否贯穿全链路</span>
-    </div>
-  </div>
-
-  <div class="rivals" id="rivals">
-    <div class="rival">
-      <div class="rn">第一类</div>
-      <h4>传统剪辑工具</h4>
-      <div class="ex">Premiere · Final Cut</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>专业、精细、可控，剪辑和包装能力成熟。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>默认素材已经存在。它不解决 AI 短剧里新增的那个问题——<b>素材本身能不能稳定生成出来</b>。</span></div>
-    </div>
-
-    <div class="rival">
-      <div class="rn">第二类</div>
-      <h4>一键成片工具</h4>
-      <div class="ex">输入一句话就出片</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>把出片门槛降到最低，强调多 Agent 协作从剧本到成片的全自动。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>黑盒、不可控。它解决了「能不能出片」，没解决<b>「能不能稳定产出我想要的片」</b>。</span></div>
-    </div>
-
-    <div class="rival">
-      <div class="rn">第三类</div>
-      <h4>模型与工作流社区</h4>
-      <div class="ex">ComfyUI 一类</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>开始显出工作流形态——把生成黑盒拆成模型、节点、参数，把控制权交还给用户。也说明真实创作者会按场景切换模型。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>偏底层、部署和学习成本高。适合 AI 发烧友，不适合内容团队——团队还需要<b>协作、资产管理、流程复用、标准沉淀</b>。</span></div>
-    </div>
-
-    <div class="rival">
-      <div class="rn">第四类</div>
-      <h4>Agent 画布工具</h4>
-      <div class="ex">TapNow · Liblib 一类</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>最接近「人与 Agent 协作工作台」。节点从技术参数变成了影视素材，用户能看清剧本里所有文本、图片、视频资产，也能用自然语言指挥 Agent 批量干活。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>目前只是把素材节点连起来。真正制作时，<b>角色和世界观的上下文仍然要用户自己维护</b>——手动编排流程、反复上传资产、反复对齐设定。</span></div>
-    </div>
-  </div>
-
-  <div class="verdict" id="verdict">
-    <div class="lbl">市场判断</div>
-    <p>真正缺的不是又一个单点生成工具，而是一个 AI 原生、可控、可复用的内容生产工作台。</p>
   </div>
 </section>
 
-<!-- ══════════════════════════════ §2 痛点 → P0 ══════════════════════════════ -->
+<!-- ═════════════ 02 ═════════════ -->
 <section id="s2">
   <div class="sec-head">
-    <span class="eyebrow">§2 · 从痛点到 P0</span>
-    <h2>两个痛点，两个指标，两个 Skill</h2>
-    <p class="lede">
-      竞品的共同缺口，落到用户研究里就是两条具体的痛。每条痛点对应一个可验证的指标，
-      指标再倒推出该做哪个 Skill——这条链是连着的，不是拍脑袋定的优先级。
-    </p>
+    <span class="eyebrow">02</span>
+    <h2>这个 Skill 长什么样</h2>
   </div>
 
-  <div class="context-bar" id="context">
-    <div>
-      <div class="ck">行业侧</div>
-      <div class="cv">微短剧是<b>高频上新、投流驱动、对成本和周期极其敏感</b>的内容生产场景。据中国网络视听协会《中国微短剧行业发展白皮书（2024）》，2024 年市场规模预计 <b>504.4 亿元</b>，有望首次超过内地电影票房的 470 亿元。</div>
-    </div>
-    <div>
-      <div class="ck">技术侧</div>
-      <div class="cv">生图、生视频模型已经把单个片段的生成门槛降下来了。但真进入量产，问题不再是<b>「能不能生成一个片段」</b>，而是<b>「能不能稳定生成一部剧」</b>——一部剧要多角色、多镜头、多分镜、多批次。</div>
-    </div>
-    <div>
-      <div class="ck">用户侧观察</div>
-      <div class="cv">视频模型强如 Seedance，对同一段提示词和参考图，指令遵循度和角色一致性仍然不稳。用户要花<b>约 1/3 的时间</b>在同一个片段上反复重生成——又贵又慢。</div>
-    </div>
-  </div>
+  <div class="flow">
+    <p>下面只讲角色设定图这一个。三版之后它长这样：用户给一张参考图和一段角色描述，Agent 读完<b>只输出一段 JSON</b>，不写最终提示词；脚本拿这段 JSON 按模板拼，拼出来的那段自然语言才喂给生图模型。模型看不到 JSON。</p>
 
-  <div class="chain" id="pains">
-    <div class="pain one">
-      <div class="ph">
-        <div class="tag">痛点一</div>
-        <h3>工作流断层</h3>
-        <p class="why">工具平台缺乏对短剧世界观和角色设定的统摄管理。同一个角色、同一套世界观的素材，用户每次生视频都要重新上传、重新描述、重新对齐上下文。而且模糊指令经常路由不到正确的操作上。</p>
-      </div>
-      <div class="steps">
-        <div class="step metric"><div class="sk">对应指标</div><div class="sv">用户体验效率</div></div>
-        <div class="step"><div class="sk">手段</div><div class="sv">把剧本、角色、分镜结构化，减少重复输入和人工拼接。</div></div>
-        <div class="step"><div class="sk">怎么验证</div><div class="sv">同一分镜生成视频的耗时、资产复用次数、返工次数、流程连续性。</div></div>
-      </div>
-    </div>
-
-    <div class="pain two">
-      <div class="ph">
-        <div class="tag">痛点二</div>
-        <h3>成片不可控</h3>
-        <p class="why">视频模型并不天然理解连续剧对角色一致性、风格统一性、镜头连贯性的强约束。同一个角色在不同镜头里会脸漂、服装漂、身份标记丢失、多主体混乱，用户最后只能不断抽卡，成本和时间都消耗在对抗模型随机性上。</p>
-      </div>
-      <div class="steps">
-        <div class="step metric"><div class="sk">对应指标</div><div class="sv">成片质量可用性</div></div>
-        <div class="step"><div class="sk">手段</div><div class="sv">建评测集、做 badcase 归因、对模型和 Prompt 做横评。</div></div>
-        <div class="step"><div class="sk">怎么验证</div><div class="sv">废片率、角色一致性、镜头稳定性、P0 错误率。</div></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="arrow-down">↓ ↓</div>
-
-  <div class="p0s" id="p0s">
-    <div class="p0">
-      <span class="badge">P0 · 上游</span>
-      <h3>角色设定图 Skill</h3>
-      <p>同一个角色、场景、服饰、道具、画风必须<b>在全局可复用</b>，后续每个分镜才谈得上一致性。它管的是资产入口——这里锁不住，后面每个镜头都会持续漂移。</p>
-      <p class="quote">它的产品价值不是让单张图更好看，而是<i>把角色变成一个可复用的视觉资产</i>，减少后续分镜里的反复抽卡。</p>
-    </div>
-    <div class="p0">
-      <span class="badge">P0 · 下游</span>
-      <h3>分镜提示词扩写 Skill</h3>
-      <p>创作者写的是剧情语言——「女主震惊地看向男主」「男主拿出信物」。视频模型需要的是镜头语言：<b>主体、动作、景别、镜头运动、场景、道具、情绪、负面约束</b>。这个转换不稳定，用户就只能反复改 prompt、反复生成。</p>
-      <p class="quote">它把原来依赖个人经验的 prompt 手搓，变成<i>一套可复用的质量控制流水线</i>。</p>
-    </div>
-  </div>
-
-  <div class="notdo">
-    <div class="lbl">主动不做的</div>
-    <p>不做导演级的复杂剧本拆解，不做许愿式一键成片，也不优先做音频切分这类局部细节功能。<b>优先级原则是：低成本、高频、影响「剧本到成片」主链路体验的关键能力。</b>能力缺口才进 Skill；按钮消失、生成超时、下载失败这类稳定性问题划归工程质量，不混进来。</p>
-  </div>
-</section>
-
-<!-- ══════════════════════════════ §3 工程链路 ══════════════════════════════ -->
-<section id="s3">
-  <div class="sec-head">
-    <span class="eyebrow">§3 · 迭代完的工程链路</span>
-    <h2>Agent 负责判断，Python 脚本负责执行</h2>
-    <p class="lede">
-      三版迭代之后，这个 Skill 的最终形态是：<b>把一张参考图里的信息拆成四类，每一类交给最适合承载它的东西</b>。
-      Agent 只输出对关键元素的判断，脚本做确定性组装。
-    </p>
+    <p>为什么要绕这一道，是被逼出来的，下一节会说。</p>
   </div>
 
   <div class="pipe" id="pipeline">
     <div class="pipe-flow">
-      <div class="pf">
-        <div class="pk">输入</div>
-        <div class="pv">一张参考图<br>+ 一段角色设定描述</div>
-      </div>
+      <div class="pf"><div class="pk">输入</div><div class="pv">一张参考图<br>+ 一段角色描述</div></div>
       <div class="pipe-arrow">→</div>
-      <div class="pf agent">
-        <div class="pk">AGENT · 只判断</div>
-        <div class="pv">加载 Skill，判断哪些元素是必保的、哪些是次要的，输出一段带判断的 JSON</div>
-      </div>
+      <div class="pf agent"><div class="pk">AGENT · 只判断</div><div class="pv">哪些元素必保、哪些次要、有什么风险点 → 输出 JSON</div></div>
       <div class="pipe-arrow">→</div>
-      <div class="pf script">
-        <div class="pk">脚本 · 只执行</div>
-        <div class="pv">按固定模板拼接 prompt，三视图、表情组、色板、16:9 等规范全部锁死</div>
-      </div>
+      <div class="pf script"><div class="pk">脚本 · 只执行</div><div class="pv">按模板拼提示词，版面和护栏常量写死</div></div>
       <div class="pipe-arrow">→</div>
-      <div class="pf">
-        <div class="pk">输出</div>
-        <div class="pv">生图模型<br>→ 角色设定图资产</div>
-      </div>
+      <div class="pf"><div class="pk">输出</div><div class="pv">生图模型<br>→ 角色设定图</div></div>
     </div>
   </div>
+
+  <div class="figslot">
+    <div class="fk">图位 A</div>
+    <div class="ft">Skill 文档本体</div>
+    <div class="fd">SKILL.md 的触发条件、核心原则、输出约定几段，让人看到「Skill 是一份有判断规则的文档」，而不是一段提示词。</div>
+    <div class="fm">建议：编辑器截图 · 宽图 · 放在管线图下方</div>
+  </div>
+
+  <p class="lede" style="margin-top:30px">参考图里的信息要分成四类，每一类交给不同的东西承载。这是三版迭代最后收敛出来的东西。</p>
 
   <div class="kinds" id="kinds">
     <div class="kind k1">
-      <div class="kl">
-        <div class="kt">连续视觉量</div>
-        <div class="ke">肤色、服装颜色、材质、光影</div>
-      </div>
+      <div class="kl"><div class="kt">连续视觉量</div><div class="ke">肤色、材质、光影、服装色</div></div>
       <div class="kr">
-        <span class="carrier">交给参考图，不写进 prompt</span>
-        <p class="kwhy">这类信息<b>经不起「图 → 文字 → 图」的往返</b>。文字会把连续的色彩压缩成几个离散词（暖棕肤色被写成「white」），模型再按文字重新生成，原图像素反而被覆盖掉。所以真相源要留在图像上。</p>
+        <span class="carrier">交给参考图像素，不写进提示词</span>
+        <p class="kw">这类信息经不起「图 → 文字 → 图」的往返。文字会把连续的色彩压成几个离散的词，模型再按文字重新生成，原图的像素反而被盖掉。</p>
       </div>
     </div>
-
     <div class="kind k2">
-      <div class="kl">
-        <div class="kt">离散身份量</div>
-        <div class="ke">logo、校徽、屏幕脸、关键道具、几何结构</div>
-      </div>
+      <div class="kl"><div class="kt">离散身份量</div><div class="ke">logo、校徽、屏幕脸、关键道具</div></div>
       <div class="kr">
-        <span class="carrier">由 Agent 写进 JSON，脚本放高权重位</span>
-        <p class="kwhy">这类是<b>「移除之后角色就变成别人」</b>的元素，恰恰不能靠图像隐式传递——它们小、易丢，必须用文字显式锁定并加权。Agent 的任务就是从参考图里挑出这 3–5 个。</p>
+        <span class="carrier">Agent 写进 JSON，脚本放高权重位</span>
+        <p class="kw">这类是「去掉之后就不是这个人」的元素。它们小、易丢，隐式传不过去，必须用文字显式点名并加权。Agent 的活就是从参考图里挑出这 3 到 5 个。</p>
       </div>
     </div>
-
     <div class="kind k3">
-      <div class="kl">
-        <div class="kt">关系量</div>
-        <div class="ke">人物位置、视线、接触点、前后景</div>
-      </div>
+      <div class="kl"><div class="kt">关系量</div><div class="ke">位置、视线、接触点、前后景</div></div>
       <div class="kr">
         <span class="carrier">写进空间关系字段</span>
-        <p class="kwhy">只写「两个人站在一起」，模型能把元素生成出来，但<b>元素之间没有稳定关系</b>——会换位、会融合、道具会脱手。所以要写成可渲染的空间事实：谁在左、谁在前景、距离多远、视线朝向谁、接触点在哪。</p>
+        <p class="kw">只写「两个人站在一起」，模型能把元素生成出来，但元素之间没有稳定关系——会换位、会融合、道具会脱手。得写成可渲染的空间事实。</p>
       </div>
     </div>
-
     <div class="kind k4">
-      <div class="kl">
-        <div class="kt">工程一致性</div>
-        <div class="ke">16:9 图幅、三视图、白底图解风、色板、命名规则</div>
-      </div>
+      <div class="kl"><div class="kt">工程一致性</div><div class="ke">16:9、三视图、白底图解风、色板</div></div>
       <div class="kr">
-        <span class="carrier">Python 脚本常量，Agent 无权改</span>
-        <p class="kwhy">这些是<b>验收标准非常确定</b>的事，不该每次靠自然语言自由发挥。正侧背三视图、表情变体、动作组、装备拆解、色板全部结构化沉淀成模板，脚本机械拼接——这样才可控、可复现、可跨版本对比。</p>
+        <span class="carrier">Python 脚本常量，Agent 改不了</span>
+        <p class="kw">这些是验收标准很确定的事，没必要每次靠自然语言临场发挥。写死在脚本里，结果才可复现、可跨版本对比。</p>
       </div>
     </div>
   </div>
 
-  <div class="split" id="skillrules">
-    <div>
-      <h4>怎么决定 Skill 的自由度</h4>
-      <ul>
-        <li><b>高自由度</b>——多种做法都合理，用原则和启发式引导。比如「写技术文章」，给结构原则、语气规则和示例。</li>
-        <li><b>中自由度</b>——有固定模式但参数可变，只对关键变量保留灵活性。比如「查内部指标」，用模板和字段说明控住口径。</li>
-        <li><b>低自由度</b>——操作脆弱、必须一致，用固定脚本加硬门控。<b>角色设定图属于这一类</b>，所以它的模板全部落在脚本里。</li>
-      </ul>
-    </div>
-    <div>
-      <h4>怎么决定 Skill 的触发方式</h4>
-      <ul>
-        <li><b>高频、低风险、边界清楚</b>的，可以让模型自己发现并触发。比如「生成提交说明」。</li>
-        <li><b>低频、影响大、需要人判断时机</b>的，最好手动触发。「重写客户需求文档」不该悄悄发生，「给线上事故做复盘」也不该在上下文不完整时自动开跑——这类要在生成初稿和人工审核之间留人的节点。</li>
-      </ul>
-    </div>
+  <div class="figslot">
+    <div class="fk">图位 B</div>
+    <div class="ft">JSON → 脚本拼出的提示词</div>
+    <div class="fd">左边 Agent 输出的 JSON，右边脚本拼出来的那段自然语言，护栏常量高亮。这张是「判断与执行分开」最直观的证据。</div>
+    <div class="fm">建议：左右对照截图 · 宽图 · 放在四类信息之后</div>
+  </div>
+
+  <div class="figslot">
+    <div class="fk">图位 C</div>
+    <div class="ft">Skill 产出的角色设定图</div>
+    <div class="fd">一张完整成品：三视图 + 表情组 + 配饰拆解 + 色板。让人直接看到这个 Skill 最终产出什么。</div>
+    <div class="fm">建议：16:9 大图 · 本节收尾</div>
   </div>
 </section>
 
-<!-- ══════════════════════════════ §4 实验 ══════════════════════════════ -->
-<section id="s4">
+<!-- ═════════════ 03 ═════════════ -->
+<section id="s3">
   <div class="sec-head">
-    <span class="eyebrow">§4 · 怎么验证</span>
-    <h2>横向对照测有没有用，纵向迭代测每一版解决了什么</h2>
-    <p class="lede">
-      测试体系分两层。<b>横向</b>回答「Skill 到底有没有真实的边际增益」，<b>纵向</b>回答「每一版到底修好了什么」。
-      两层的数字不是一回事，分开看才不会混。
-    </p>
+    <span class="eyebrow">03</span>
+    <h2>凭什么说它有用</h2>
   </div>
 
-  <div class="exp" id="exp">
-    <!-- 横向 -->
-    <div class="expcard">
-      <div class="eh">
-        <div class="et">横向 · 三路对照</div>
-        <p class="eq">为什么必须做对照：<b>现在模型和 Agent 本身都很强</b>。如果不设基线，很容易把模型自己的能力误算成 Skill 的价值。</p>
-      </div>
-      <div class="eb">
-        <div class="bars">
-          <div class="bar b1">
-            <div class="bl">
-              <div class="bn">第一路 · 用户原话直喂<small>零 LLM 基线，测模型裸能力</small></div>
-              <div class="bv">50%</div>
-            </div>
-            <div class="track"><div class="fill" style="--w:50%"></div></div>
-          </div>
-          <div class="bar b2">
-            <div class="bl">
-              <div class="bn">第二路 · 裸 Agent 自由生成<small>不加载 Skill，测 Agent 本能</small></div>
-              <div class="bv">65%</div>
-            </div>
-            <div class="track"><div class="fill" style="--w:65%"></div></div>
-          </div>
-          <div class="bar b3">
-            <div class="bl">
-              <div class="bn">第三路 · Agent + Skill<small>测结构化约束的额外提升</small></div>
-              <div class="bv">75%</div>
-            </div>
-            <div class="track"><div class="fill" style="--w:75%"></div></div>
-          </div>
-        </div>
-        <p class="honest-note" style="margin-top:20px">
-          这三个数是<b>同一时点</b>三路的元素完整率。Skill 的增益必须同时超过前两路才算成立——
-          只赢第一路说明它只是「有 Agent 比没 Agent 强」，不是 Skill 本身的功劳。
-        </p>
-      </div>
-    </div>
+  <div class="flow" id="iter">
+    <p>我拿一个校园悬疑女主的 case 走了全程。用户给的 brief 是：18 岁，冷感、警惕，蓝黑短发，左眼下一颗泪痣，深蓝色校服外套，胸前一枚银色校徽，随身一只银色怀表。</p>
 
-    <!-- 纵向 -->
-    <div class="expcard">
-      <div class="eh">
-        <div class="et">纵向 · 三版迭代</div>
-        <p class="eq">迭代的依据是<b>看 badcase，不是盲目改 prompt</b>。每一版都是被一类具体的翻车逼出来的。</p>
-      </div>
-      <div class="eb">
-        <div class="vers">
-          <div class="ver">
-            <div class="vh"><span class="vn">V1</span><span class="vt">参考图 + 详细外观描述</span></div>
-            <p class="vhit">看起来信息量最全，结果最致命：<b>肤色漂移、服装颜色被文字覆盖</b>。暖肤色被写成偏白的描述后，生成出来是惨白瓷面；灰色卫衣变全白。</p>
-            <p class="vfix"><span class="fl">第一轮修正</span>把肤色、材质、光影这类<b>连续视觉量交回参考图锚定</b>，最终喂给模型的文字不再过度描述外观。</p>
-          </div>
-          <div class="ver">
-            <div class="vh"><span class="vn">V2</span><span class="vt">加身份锚点字段</span></div>
-            <p class="vhit">连续量稳住了，但<b>身份标记开始丢</b>：logo、屏幕脸、校徽、关键道具这些小而关键的元素经常不见，或者被渲染成别的东西。</p>
-            <p class="vfix"><span class="fl">第二轮修正</span>增加身份锚点字段，让<b>离散身份量用文字高权重锁定</b>——Agent 挑出 3–5 个「移除后就不是这个角色」的标记，脚本写进高权重位。</p>
-          </div>
-          <div class="ver">
-            <div class="vh"><span class="vn">V3</span><span class="vt">加空间关系字段</span></div>
-            <p class="vhit">单主体稳了，多主体还是乱：<b>人物位置和动作关系混乱</b>，两个主体换位、融合，或者人和道具之间没有接触关系。</p>
-            <p class="vfix"><span class="fl">第三轮修正</span>增加空间关系字段，<b>关系量用空间骨架约束</b>——左右、前后景、距离、视线、接触点全部写成可渲染的事实。</p>
-          </div>
-        </div>
-      </div>
+    <p>第一版 Skill 我的想法很朴素——参考图给上，再把外观描述写全，信息越多越保险。</p>
+
+    <p>跑完第一批，问题出在肤色上。参考图里是暖棕调，生成出来是惨白的瓷面，灰色卫衣也变成了纯白。我一开始以为是模型不行，去翻拼出来的提示词才发现：identity block 那四个字段里都带了 <span class="mono">white</span>，逐字拼成一句之后，同一段话里 <span class="mono">white</span> 出现了五次。文字的强度压过了参考图的像素。而下游的三视图、表情、动作全都锚着这张已经洗白的基准图，等于集体跟着偏。</p>
+
+    <p>真正让我想明白的是一个反常的地方：那批图里唯独 comprehensive 那张最贴原图。不是它做对了，是脚本有个 bug，把原图又重新喂了一遍。这个本该修掉的错误，反倒指出了正确做法——<b>外观的真相应该来自像素，不该来自文字</b>。</p>
+
+    <p>所以第二版把基准图改成拿原图做 img2img 归一化，只动姿势、背景、光，不碰外观，文字只写差异。</p>
+
+    <p>然后撞上第二个问题。肤色稳住了，小东西开始丢：校徽、泪痣、怀表经常不见，或者被渲成别的东西。这跟第一版的教训看着是矛盾的——刚说文字会抢权重，现在又要加文字。区分点在于<b>连续还是离散</b>。肤色、材质、光影是连续的，压成几个词就回不去了；logo、屏幕脸、几何结构是离散的，不显式写就没人管它。</p>
+
+    <p>第三版因此加了身份锚点清单：让 Agent 从参考图里挑 3 到 5 个「去掉就不是这个人」的标记，脚本把它们放进提示词的高权重位。</p>
+
+    <p>三版下来，元素完整率从 70% 到 85%。改善集中在配饰和身份标记——之前最容易丢的就是它们。</p>
+  </div>
+
+  <div class="figslot">
+    <div class="fk">图位 D · 全页最重要的一张</div>
+    <div class="ft">三路对照</div>
+    <div class="fd">同一张参考图、同一个模型、同一个 seed，只换提示词。三张产出并排，5 秒看出差别：第一路丢配饰，第二路把肤色写白了还丢了怀表，第三路都在。</div>
+    <div class="fm">建议：三图横排 · 每张下面标元素完整率 · 位置待定（对照说明之前或之后）</div>
+  </div>
+
+  <div class="flow" id="ab">
+    <p>但这个数字自己说明不了问题。现在的模型和 Agent 本身就很强，不设基线，很容易把模型自己的本事算成 Skill 的功劳。</p>
+
+    <p>所以同一张参考图、同一个模型，只换提示词，跑三路。</p>
+  </div>
+
+  <div class="bars">
+    <div class="bar b1">
+      <div class="bl"><div class="bn">用户原话逐字喂<small>零 LLM 基线，测模型裸能力</small></div><div class="bv">50%</div></div>
+      <div class="track"><div class="fill" style="--w:50%"></div></div>
+    </div>
+    <div class="bar b2">
+      <div class="bl"><div class="bn">通用 Agent，不加载 Skill<small>自由写提示词，测 Agent 本能</small></div><div class="bv">65%</div></div>
+      <div class="track"><div class="fill" style="--w:65%"></div></div>
+    </div>
+    <div class="bar b3">
+      <div class="bl"><div class="bn">Agent + Skill<small>测结构化约束的额外增益</small></div><div class="bv">75%</div></div>
+      <div class="track"><div class="fill" style="--w:75%"></div></div>
     </div>
   </div>
 
-  <div class="metric-def" id="metric">
-    <h4>元素完整率是怎么算的</h4>
-    <p>
-      先根据用户 brief 和参考图，拆出一组<b>应该出现的元素</b>，再统计生成结果里实际保留下来的比例。
-      拆解时按重要性分三层：
-    </p>
-    <div class="tiers">
-      <span>P0 · 身份锚点</span>
-      <span>P1 · 外观与服装</span>
-      <span>P2 · 辅助风格元素</span>
-    </div>
-    <p style="margin-top:13px">
-      比如肤色、脸型、服装颜色、关键配饰、身份标记、道具、整体画风是否被正确保留。
-      <b>经过 3 版迭代，元素完整率从 70% 提升到 85%</b>——主要改善的是身份锚点和配饰细节这两块原来最容易丢的。
-    </p>
+  <div class="flow" style="margin-top:30px">
+    <p>第一路必须存在，而且它是三路里最反直觉的一路。强 chatbot 有原生多模态，还有人在回路兜底，单张图的质量经常比自建管线还漂亮。自建管线的价值不在单张惊艳，在<b>批量、跨次一致、要素强制、可程序化</b>。</p>
+
+    <p>防污染做了几层：对照组不能偷塞 Skill 的规则，Skill 版本 pin 住 hash，每一路跑之前清空工作区，brief 由脚本机械拉取做 SHA 对账，输出文件用随机码重命名、盲评之后再揭盲。</p>
+
+    <p>最麻烦的是 baseline 那一路。<span class="mono">ref-asset-builder</span> 是项目级 skill，项目目录里任何 agent 都能自己触发它——所以 baseline 必须跑在项目目录<b>之外</b>，那里想触发都触发不了。跑完还要 grep 一遍 transcript，出现 skill 相关的概念就判污染、重跑。</p>
   </div>
 
-  <div class="downstream" id="downstream">
-    <div class="lbl">最关键的一步</div>
-    <h4>不停在上游看图，用下游视频表现反测上游 Skill</h4>
-    <p>
-      角色设定图好不好看不算数。我把生成的设定图继续喂进视频生成链路，
-      用下游视频的实际表现，反过来判断上游 Skill 到底有没有效。
-    </p>
-    <div class="dims">
-      <div><div class="dt">角色还原度</div><div class="dd">视频里的角色，是不是还像原始那个角色。</div></div>
-      <div><div class="dt">跨镜一致性</div><div class="dd">多次生成、多个分镜里，脸、服装、身份标记是否稳定。</div></div>
-      <div><div class="dt">视频生动度</div><div class="dd">动作、表情、镜头运动是否自然，而不是僵硬地站着。</div></div>
-    </div>
-    <div class="res">Agent + Skill 组在这三项上整体提升约 10%</div>
+  <div class="flow" id="down" style="margin-top:34px">
+    <p>上游的图好不好看不算数。我把生成的设定图继续喂进视频链路，用下游三条分镜的表现反过来判断上游。看三样：视频里的人还像不像原来那个角色、多个分镜之间脸和服装和标记稳不稳、动作表情镜头运动自不自然。Agent + Skill 这一路在这三样上大概好 10%。</p>
   </div>
 
-  <p class="honest-note">
-    <b>评分口径上的取舍</b>：这三个维度目前<b>不打分，用「是 / 否」判断</b>。
-    样本量还小，硬要给出精细分值反而会制造一种不该有的精确感——先把方向判准，比先把小数点做漂亮更重要。
-    另外我也参与搭建了 500+ 样本的视频评测数据集，按单节点生成、连续节点一致性、跨章节角色一致性拆能力，
-    从运动平滑、闪烁、空间关系、主体一致性等维度评分——目的是把「这个 Skill 让结果更好」
-    从主观感受变成<b>可追踪、可回归测试的指标</b>。
+  <p class="aside-note">
+    评分我没打分，用的是「是 / 否」。样本量还小，硬给到小数点会造出一种<b>不该有的精确感</b>。
   </p>
 </section>
 
-<!-- ══════════════════════════════ §5 case ══════════════════════════════ -->
-<section id="s5">
+<!-- ═════════════ 04 ═════════════ -->
+<section id="s4">
   <div class="sec-head">
-    <span class="eyebrow">§5 · 一个具体的 case</span>
-    <h2>校园悬疑女主：单张图都不差，一进视频链路就崩</h2>
-    <p class="lede">这个 case 完整走了一遍上面所有的判断，也是最能说明「为什么要用下游反测上游」的一个。</p>
+    <span class="eyebrow">04</span>
+    <h2>学到什么</h2>
   </div>
 
-  <div class="case" id="casebox">
-    <div class="case-brief">
-      <div class="lbl">用户 BRIEF</div>
-      <p class="bq">一个校园悬疑女主：18 岁，冷感、警惕，蓝黑短发，左眼下有一颗泪痣，穿深蓝色校服外套，胸前有银色校徽，随身带一个银色怀表。</p>
-      <div class="shots">
-        <span>分镜 1 · 走廊回头</span>
-        <span>分镜 2 · 低头看怀表</span>
-      </div>
-    </div>
-
-    <div class="case-problem">
-      <p class="lead">问题在于：<b>单次生图看起来都不差</b>，但一放到视频链路里就出三个典型 badcase。</p>
-      <div class="bcs">
-        <div><div class="bt">脸型和发色每条都不一样</div><div class="bd">同一个角色在两条视频里像两个人。</div></div>
-        <div><div class="bt">身份锚点经常丢</div><div class="bd">校徽、泪痣、怀表这些小而关键的元素频繁消失。</div></div>
-        <div><div class="bt">不像同一个角色在连续表演</div><div class="bd">分镜之间动作能生成，但接不上，没有连续感。</div></div>
-      </div>
-    </div>
-
-    <div class="arms">
-      <div class="arm a1">
-        <div class="an">第一路</div>
-        <h4>用户原话直喂模型</h4>
-        <p>把「蓝黑短发、左眼泪痣、校服、银色怀表」直接喂给生图和生视频模型。<br><br>结果：画面审美还可以，但元素保留不稳定——尤其<b>泪痣、校徽、怀表</b>这类小而关键的身份元素最容易丢。</p>
-      </div>
-      <div class="arm a2">
-        <div class="an">第二路</div>
-        <h4>裸 Agent 自由生成</h4>
-        <p>让 Agent 自己理解角色 brief，自由写角色设定图 prompt。<br><br>结果：比原话好一些，因为 Agent 会主动补三视图、表情、服装这些信息。但它<b>过度描述肤色、光影、材质，反而盖掉了参考图特征</b>；对校徽、怀表、泪痣这类离散锚点也没有明确加权，下游视频照样漂。</p>
-      </div>
-      <div class="arm a3">
-        <div class="an">第三路</div>
-        <h4>Agent + 角色设定图 Skill</h4>
-        <p>把角色信息拆成三类分别处理：<b>肤色、脸型、发色、光影</b>交给参考图锚定；<b>泪痣、校徽、怀表、发卡</b>写进结构化字段；<b>人物朝向、表情、动作组、配饰位置</b>写进空间关系字段。<br><br>最后由脚本按固定模板拼成完整 prompt：正侧背三视图、表情变体、动作组、配饰拆解、色板、16:9 图幅。</p>
-      </div>
-    </div>
-
-    <div class="case-result">
-      <div>
-        <div class="rk">上游 · 元素完整率</div>
-        <div class="rv">70%<span class="arrow">→</span><span class="hi">85%</span></div>
-        <p class="rd">早期版本约 70%，主要丢在身份锚点和配饰细节。迭代后到 85%——核心改善是<b>泪痣、校徽、怀表、服装颜色、动作组稳定了</b>。</p>
-      </div>
-      <div>
-        <div class="rk">下游 · 视频表现</div>
-        <div class="rv"><span class="hi">≈ +10%</span></div>
-        <p class="rd">角色还原度、跨镜一致性、生动度整体提升约 10%。这说明 Skill 的价值<b>不是让单张图更好看</b>，而是把角色变成可复用的视觉资产，减少后续分镜里的漂移和反复抽卡。</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════ §6 收束 ══════════════════════════════ -->
-<section id="s6">
-  <div class="sec-head">
-    <span class="eyebrow">§6 · 思考与感悟</span>
-    <h2>这段经历里我真正沉下来的四件事</h2>
-  </div>
-
-  <div class="takes" id="takes">
+  <div class="takes">
     <div class="take">
       <div class="tn">01</div>
-      <div>
-        <h3>Skill 不是把 Prompt 写长，是把可复用能力工程化</h3>
-        <p>一开始我以为写得越全越好，V1 的翻车直接否掉了这个直觉。真正要做的判断是：<b>每一类信息该由谁承载</b>——图像、文字，还是脚本常量。Prompt 不该平均用力。</p>
-      </div>
+      <h3>Skill 不是把提示词写长</h3>
+      <p>第一版的教训就是这个。「信息越全越保险」这个直觉是错的。真正要判断的是每一类信息该由谁承载——图像、文字，还是脚本常量。提示词不该平均用力。</p>
     </div>
     <div class="take">
       <div class="tn">02</div>
-      <div>
-        <h3>先把任务拆成「智能」和「执行」</h3>
-        <p>智能是需要大模型当大脑判断的部分，用自然语言的 markdown 写最合适；执行是验收标准非常确定的部分，就该用脚本写死。<b>这条边界划清楚了，结果才能审计、才能复现、才能跨版本对比。</b>Skill 和一段 prompt 模板的区别就在这里。</p>
-      </div>
+      <h3>上游能力的验收标准，要放在下游</h3>
+      <p>只看设定图本身，会得出完全相反的结论：单张图挺好，视频里全崩。这也是三路对照里第一路必须存在的原因——不设真基线，就分不清是模型强还是 Skill 强。</p>
     </div>
-    <div class="take">
-      <div class="tn">03</div>
-      <div>
-        <h3>一定要用下游表现反测上游</h3>
-        <p>只看角色设定图本身好不好看，会得出完全错误的结论——单张图不差，视频里全崩。<b>上游能力的验收标准必须放在下游</b>。这也是为什么三路对照的第一路（用户原话直喂）必须存在：不设真基线，就分不清是模型强还是 Skill 强。</p>
-      </div>
+    <div class="take open">
+      <div class="tn">03 · 还没想明白</div>
+      <h3>Skill 该随基模变强而缩水，但缩到什么程度我没有标尺</h3>
+      <p>今天必须写死的护栏，模型下一版可能自己就会了，继续写死反而是负担。道理我认，可什么时候该删掉一条规则、凭什么判断它已经冗余，我目前只能靠每次重跑对照实验去撞。这不是个可持续的办法，我还没想出更好的。</p>
     </div>
-    <div class="take">
-      <div class="tn">04</div>
-      <div>
-        <h3>迭代靠看 badcase，不靠盲目改 prompt</h3>
-        <p>三版迭代，每一版都是被一类具体翻车逼出来的：肤色漂移 → 身份标记丢失 → 多主体关系混乱。<b>先归因到「这类信息为什么会丢」，再决定改什么</b>，而不是反过来先改再看效果。</p>
-      </div>
-    </div>
-  </div>
-
-  <div class="formula" id="formula">
-    <div class="fh">一句话方法论</div>
-    <div class="fg">
-      <div class="fi f1"><div class="ft">连续量靠像素锚</div><div class="fd">颜色、材质、光影交给参考图</div></div>
-      <div class="fi f2"><div class="ft">离散量靠文字锁</div><div class="fd">logo、标记、道具显式加权</div></div>
-      <div class="fi f3"><div class="ft">关系量靠空间骨架</div><div class="fd">位置、视线、接触点写成事实</div></div>
-      <div class="fi f4"><div class="ft">一致性靠脚本常量</div><div class="fd">图幅、版式、命名机械锁死</div></div>
-    </div>
-  </div>
-
-  <div class="closing">
-    <p>AI 视频产品会从「人人手搓提示词的作坊」，走向「专业经验高度复用的内容工厂」。</p>
-    <p class="src">真正的机会不在单点生成能力，而在于谁能把创作者的经验、资产和流程，沉淀成可复用的 Skill。</p>
   </div>
 </section>
 
 <footer>
-  <div class="sig">
-    <div class="sig-name">颜雍颀</div>
-    <p class="sig-role">AI 产品经理方向 ｜ 清华大学 环境科学与新能源技术 硕士在读</p>
-  </div>
-  <p class="sig-path">AI 视频创作 Agent · Skill 设计与开发 ｜ 竞品拆解 → 用户研究 → P0 判断 → Skill 开发 → 对照实验 → 下游反测</p>
+  <div class="n">颜雍颀</div>
+  <p class="r">AI 产品经理方向 ｜ 清华大学 环境科学与新能源技术 硕士在读</p>
 </footer>
 
 </div>
 </div>
+
 <script>
-/* 极简交互：目录高亮 + 滚动入场。无外部依赖。 */
 (function () {
   var reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  // 目录 scroll-spy
+  // 目录高亮
   var links = {};
   document.querySelectorAll('.toc .lv1 > a[href^="#s"]').forEach(function (a) {
     links[a.getAttribute("href").slice(1)] = a;
@@ -995,10 +496,8 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     return;
   }
 
-  // 滚动入场：条形图 + 章节标题
-  document.querySelectorAll(".sec-head, .bars").forEach(function (n) {
-    if (!n.classList.contains("bars")) n.classList.add("reveal");
-  });
+  // 滚动入场
+  document.querySelectorAll(".sec-head").forEach(function (n) { n.classList.add("reveal"); });
   var io = new IntersectionObserver(function (es) {
     es.forEach(function (e) {
       if (!e.isIntersecting) return;
@@ -1009,5 +508,6 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   document.querySelectorAll(".reveal, .bars").forEach(function (n) { io.observe(n); });
 })();
 </script>
+
 </body>
 </html>
