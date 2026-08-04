@@ -143,6 +143,19 @@ section { padding: 76px 0; border-top: 1px solid var(--rule); }
 .rival .con .mk { background: var(--pixel-tint); color: var(--pixel); }
 .rival .row2 span:last-child { color: var(--ink-2); }
 
+.scorecard { display: flex; gap: 6px; margin-top: 4px; padding-top: 13px;
+  border-top: 1px dashed var(--rule-soft); }
+.sc { font-family: var(--mono); font-size: 10.5px; letter-spacing: .04em;
+  padding: 2px 8px; border-radius: 2px; border: 1px solid transparent; }
+.sc.ok { background: var(--space-tint); color: var(--space); border-color: var(--space-edge); }
+.sc.ok::before { content: "✓ "; }
+.sc.no { background: transparent; color: var(--ink-3); border-color: var(--rule);
+  border-style: dashed; }
+.sc.no::before { content: "— "; }
+.rival:hover .sc.no { border-color: var(--pixel-edge); color: var(--pixel); }
+.verdict .vsub { font-family: var(--body); font-size: 15px; font-weight: 400;
+  color: var(--ink-2); margin-top: 12px; max-width: 34em; }
+
 .axes { margin-top: 26px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
 .axes .lbl { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: .1em; }
 .axes .ax { font-size: 13.5px; color: var(--ink-2); border: 1px solid var(--rule);
@@ -346,6 +359,8 @@ section { padding: 76px 0; border-top: 1px solid var(--rule); }
 .take { display: grid; grid-template-columns: 44px 1fr; gap: 20px; align-items: start;
   border-bottom: 1px solid var(--rule); padding-bottom: 18px; }
 .take:last-child { border-bottom: 0; }
+.take:last-child .tn { color: var(--pixel); }
+.take:last-child h3 { color: var(--pixel); }
 .take .tn { font-family: var(--display); font-size: 30px; font-weight: 700; color: var(--rule);
   line-height: 1; font-variant-numeric: tabular-nums; }
 .take h3 { font-family: var(--display); font-size: 20px; font-weight: 700; line-height: 1.5; }
@@ -464,11 +479,11 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     <span class="eyebrow">面向大众创作者 · 短剧 / 漫剧场景</span>
   </div>
 
-  <h1>AI 视频创作缺的不是又一个生成工具，<br>是一个<em>可复用的内容生产工作台</em></h1>
+  <h1>创作者三分之一的时间，<br>花在<em>同一个镜头反复重生成</em>上</h1>
 
   <p class="sub">
-    从竞品拆解和用户研究里找到两个核心痛点，落到两个 P0 Skill 上，
-    再用三路对照实验和下游视频反测，验证它们是不是真的有用。
+    我在一个面向大众创作者的 AI 视频创作 Agent 做 Skill 设计。
+    这页记的是我怎么找到这个问题，做了什么，以及怎么知道做的东西真的有用。
   </p>
 
   <div class="stats">
@@ -499,16 +514,16 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 <section id="s1">
   <div class="sec-head">
     <span class="eyebrow">§1 · 市场判断</span>
-    <h2>拆竞品不是为了罗列工具，是为了判断链路卡在哪一段</h2>
+    <h2>四类工具装了一圈，缺的那一格是同一个</h2>
     <p class="lede">
-      我没有做功能清单对比，而是看每类产品背后代表的<b>生产范式</b>，
-      以及用户在标准流程之外的异常操作。看三个维度：
+      我没做功能清单对比，看的是每类产品背后的生产范式，以及用户在标准流程之外的异常操作。
+      每张卡下面这三格，是我给每类工具打的分——四张看完，会发现有一格从头到尾没亮过。
     </p>
     <div class="axes">
-      <span class="lbl">判断维度</span>
-      <span class="ax">用户对成片的控制权</span>
-      <span class="ax">生产效率有没有真的提升</span>
-      <span class="ax">剧本资产和上下文能否贯穿全链路</span>
+      <span class="lbl">三个维度</span>
+      <span class="ax">对成片的控制权</span>
+      <span class="ax">生产效率</span>
+      <span class="ax">上下文贯穿全链路</span>
     </div>
   </div>
 
@@ -517,38 +532,51 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       <div class="rn">第一类</div>
       <h4>传统剪辑工具</h4>
       <div class="ex">Premiere · Final Cut</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>专业、精细、可控，剪辑和包装能力成熟。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>默认素材已经存在。它不解决 AI 短剧里新增的那个问题——<b>素材本身能不能稳定生成出来</b>。</span></div>
+      <div class="row2 pro"><span class="mk">行</span><span>专业、精细、可控，剪辑和包装能力成熟。</span></div>
+      <div class="row2 con"><span class="mk">不行</span><span>它默认素材已经存在。AI 短剧新增的麻烦在前面一步——<b>素材本身生不稳</b>。</span></div>
+      <div class="scorecard">
+        <span class="sc ok">控制权</span><span class="sc no">效率</span><span class="sc no">上下文</span>
+      </div>
     </div>
 
     <div class="rival">
       <div class="rn">第二类</div>
       <h4>一键成片工具</h4>
-      <div class="ex">输入一句话就出片</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>把出片门槛降到最低，强调多 Agent 协作从剧本到成片的全自动。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>黑盒、不可控。它解决了「能不能出片」，没解决<b>「能不能稳定产出我想要的片」</b>。</span></div>
+      <div class="ex">输一句话就出片</div>
+      <div class="row2 pro"><span class="mk">行</span><span>门槛压到最低，多 Agent 协作从剧本一路自动到成片。</span></div>
+      <div class="row2 con"><span class="mk">不行</span><span>黑盒。能出片，但出的是什么你管不着——<b>稳定产出想要的那一条，做不到</b>。</span></div>
+      <div class="scorecard">
+        <span class="sc no">控制权</span><span class="sc ok">效率</span><span class="sc no">上下文</span>
+      </div>
     </div>
 
     <div class="rival">
       <div class="rn">第三类</div>
       <h4>模型与工作流社区</h4>
       <div class="ex">ComfyUI 一类</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>开始显出工作流形态——把生成黑盒拆成模型、节点、参数，把控制权交还给用户。也说明真实创作者会按场景切换模型。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>偏底层、部署和学习成本高。适合 AI 发烧友，不适合内容团队——团队还需要<b>协作、资产管理、流程复用、标准沉淀</b>。</span></div>
+      <div class="row2 pro"><span class="mk">行</span><span>把生成黑盒拆成模型、节点、参数，控制权交回用户手里。也说明创作者真的会按场景换模型。</span></div>
+      <div class="row2 con"><span class="mk">不行</span><span>没人愿意为了做一集短剧去学节点图。团队要的协作、资产管理、流程复用，它一样没有。</span></div>
+      <div class="scorecard">
+        <span class="sc ok">控制权</span><span class="sc no">效率</span><span class="sc no">上下文</span>
+      </div>
     </div>
 
     <div class="rival">
       <div class="rn">第四类</div>
       <h4>Agent 画布工具</h4>
       <div class="ex">TapNow · Liblib 一类</div>
-      <div class="row2 pro"><span class="mk">优势</span><span>最接近「人与 Agent 协作工作台」。节点从技术参数变成了影视素材，用户能看清剧本里所有文本、图片、视频资产，也能用自然语言指挥 Agent 批量干活。</span></div>
-      <div class="row2 con"><span class="mk">劣势</span><span>目前只是把素材节点连起来。真正制作时，<b>角色和世界观的上下文仍然要用户自己维护</b>——手动编排流程、反复上传资产、反复对齐设定。</span></div>
+      <div class="row2 pro"><span class="mk">行</span><span>最接近我想要的形态。节点从技术参数变成了影视素材，人和 Agent 能在一块画布上协作。</span></div>
+      <div class="row2 con"><span class="mk">不行</span><span>目前只是把素材节点连起来。真做起来，<b>角色和世界观的上下文还是得用户自己维护</b>——每个分镜重新传一遍图，重新描述一遍这人长什么样。</span></div>
+      <div class="scorecard">
+        <span class="sc ok">控制权</span><span class="sc ok">效率</span><span class="sc no">上下文</span>
+      </div>
     </div>
   </div>
 
   <div class="verdict" id="verdict">
-    <div class="lbl">市场判断</div>
-    <p>真正缺的不是又一个单点生成工具，而是一个 AI 原生、可控、可复用的内容生产工作台。</p>
+    <div class="lbl">四张卡看下来</div>
+    <p>「上下文贯穿」这一格，没有一个亮起来过。</p>
+    <p class="vsub">控制权和效率各有人做到，甚至有工具两样都占。但没有一个地方，能把角色、世界观、镜头规则存下来，让下一个分镜直接拿去用。</p>
   </div>
 </section>
 
@@ -556,10 +584,10 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 <section id="s2">
   <div class="sec-head">
     <span class="eyebrow">§2 · 从痛点到 P0</span>
-    <h2>两个痛点，两个指标，两个 Skill</h2>
+    <h2>那一格缺口，落到用户身上是什么样</h2>
     <p class="lede">
-      竞品的共同缺口，落到用户研究里就是两条具体的痛。每条痛点对应一个可验证的指标，
-      指标再倒推出该做哪个 Skill——这条链是连着的，不是拍脑袋定的优先级。
+      用户研究里最扎眼的是一个数：创作者要花大约三分之一的时间，在同一个片段上反复重新生成。
+      不是在想创意，是在跟模型的随机性较劲。往下拆是两条痛。
     </p>
   </div>
 
@@ -583,7 +611,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       <div class="ph">
         <div class="tag">痛点一</div>
         <h3>工作流断层</h3>
-        <p class="why">工具平台缺乏对短剧世界观和角色设定的统摄管理。同一个角色、同一套世界观的素材，用户每次生视频都要重新上传、重新描述、重新对齐上下文。而且模糊指令经常路由不到正确的操作上。</p>
+        <p class="why">同一个角色、同一套世界观的素材，每次生视频都得重新上传、重新描述、重新对齐一遍。工具里没有一个地方统摄短剧的世界观和角色设定。用户说的模糊指令，也经常路由不到该去的那个操作上。</p>
       </div>
       <div class="steps">
         <div class="step metric"><div class="sk">对应指标</div><div class="sv">用户体验效率</div></div>
@@ -596,7 +624,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       <div class="ph">
         <div class="tag">痛点二</div>
         <h3>成片不可控</h3>
-        <p class="why">视频模型并不天然理解连续剧对角色一致性、风格统一性、镜头连贯性的强约束。同一个角色在不同镜头里会脸漂、服装漂、身份标记丢失、多主体混乱，用户最后只能不断抽卡，成本和时间都消耗在对抗模型随机性上。</p>
+        <p class="why">视频模型不天然理解连续剧对角色一致性、风格统一、镜头连贯的强约束。同一个人在不同镜头里会脸漂、衣服漂、身份标记丢、多主体混乱。用户最后只能一遍遍抽卡，钱和时间都花在对抗随机性上。</p>
       </div>
       <div class="steps">
         <div class="step metric"><div class="sk">对应指标</div><div class="sv">成片质量可用性</div></div>
@@ -612,20 +640,20 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     <div class="p0">
       <span class="badge">P0 · 上游</span>
       <h3>角色设定图 Skill</h3>
-      <p>同一个角色、场景、服饰、道具、画风必须<b>在全局可复用</b>，后续每个分镜才谈得上一致性。它管的是资产入口——这里锁不住，后面每个镜头都会持续漂移。</p>
-      <p class="quote">它的产品价值不是让单张图更好看，而是<i>把角色变成一个可复用的视觉资产</i>，减少后续分镜里的反复抽卡。</p>
+      <p>同一个角色的脸、服装、道具、画风得<b>在全局可复用</b>，后面每个分镜才谈得上一致。它管的是资产入口——这里锁不住，后面每一镜都在漂。</p>
+      <p class="quote">它要解决的不是单张图好不好看，是<i>把角色变成一份能反复调用的资产</i>，让后面的分镜不用再抽卡。</p>
     </div>
     <div class="p0">
       <span class="badge">P0 · 下游</span>
       <h3>分镜提示词扩写 Skill</h3>
       <p>创作者写的是剧情语言——「女主震惊地看向男主」「男主拿出信物」。视频模型需要的是镜头语言：<b>主体、动作、景别、镜头运动、场景、道具、情绪、负面约束</b>。这个转换不稳定，用户就只能反复改 prompt、反复生成。</p>
-      <p class="quote">它把原来依赖个人经验的 prompt 手搓，变成<i>一套可复用的质量控制流水线</i>。</p>
+      <p class="quote">原来靠个人经验手搓 prompt，现在变成<i>一套能复用的质量控制流水线</i>。</p>
     </div>
   </div>
 
   <div class="notdo">
     <div class="lbl">主动不做的</div>
-    <p>不做导演级的复杂剧本拆解，不做许愿式一键成片，也不优先做音频切分这类局部细节功能。<b>优先级原则是：低成本、高频、影响「剧本到成片」主链路体验的关键能力。</b>能力缺口才进 Skill；按钮消失、生成超时、下载失败这类稳定性问题划归工程质量，不混进来。</p>
+    <p>导演级的剧本拆解太重，许愿式一键成片方向就不对，音频切分是局部优化——这三样我都没放进来。<b>优先做低成本、高频、卡在「剧本到成片」主链路上的能力。</b>另外按钮消失、生成超时、下载失败这类，我划到工程质量，不算 Skill 的缺口。</p>
   </div>
 </section>
 
@@ -633,10 +661,11 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 <section id="s3">
   <div class="sec-head">
     <span class="eyebrow">§3 · 迭代完的工程链路</span>
-    <h2>Agent 负责判断，Python 脚本负责执行</h2>
+    <h2>Agent 只判断，Python 脚本负责执行</h2>
     <p class="lede">
-      三版迭代之后，这个 Skill 的最终形态是：<b>把一张参考图里的信息拆成四类，每一类交给最适合承载它的东西</b>。
-      Agent 只输出对关键元素的判断，脚本做确定性组装。
+      三版之后它长这样：用户给一张参考图和一段角色描述，Agent 读完只输出一段 JSON，不写最终提示词；
+      脚本拿这段 JSON 按模板拼，拼出来那段自然语言才喂给生图模型。模型看不到 JSON。
+      为什么要绕这一道，是被逼出来的，下一节会说。
     </p>
   </div>
 
@@ -672,7 +701,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       </div>
       <div class="kr">
         <span class="carrier">交给参考图，不写进 prompt</span>
-        <p class="kwhy">这类信息<b>经不起「图 → 文字 → 图」的往返</b>。文字会把连续的色彩压缩成几个离散词（暖棕肤色被写成「white」），模型再按文字重新生成，原图像素反而被覆盖掉。所以真相源要留在图像上。</p>
+        <p class="kwhy">这类信息<b>经不起「图 → 文字 → 图」的往返</b>。文字会把连续的色彩压成几个词——暖棕肤色写着写着就成了 white——模型再照文字重新生成一遍，原图的像素反倒被盖掉了。真相得留在图像上。</p>
       </div>
     </div>
 
@@ -683,7 +712,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       </div>
       <div class="kr">
         <span class="carrier">由 Agent 写进 JSON，脚本放高权重位</span>
-        <p class="kwhy">这类是<b>「移除之后角色就变成别人」</b>的元素，恰恰不能靠图像隐式传递——它们小、易丢，必须用文字显式锁定并加权。Agent 的任务就是从参考图里挑出这 3–5 个。</p>
+        <p class="kwhy">这类是<b>「去掉之后就不是这个人」</b>的元素。它们小、易丢，靠图像隐式传递传不过去，必须用文字点名并加权。Agent 的活就是从参考图里挑出这 3 到 5 个。</p>
       </div>
     </div>
 
@@ -694,7 +723,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       </div>
       <div class="kr">
         <span class="carrier">写进空间关系字段</span>
-        <p class="kwhy">只写「两个人站在一起」，模型能把元素生成出来，但<b>元素之间没有稳定关系</b>——会换位、会融合、道具会脱手。所以要写成可渲染的空间事实：谁在左、谁在前景、距离多远、视线朝向谁、接触点在哪。</p>
+        <p class="kwhy">只写「两个人站在一起」，模型能把元素生成出来，但<b>元素之间没有稳定关系</b>——会换位、会融合、道具会脱手。得写成可渲染的空间事实：谁在左、谁在前景、距离多远、视线朝谁、接触点在哪。</p>
       </div>
     </div>
 
@@ -705,7 +734,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       </div>
       <div class="kr">
         <span class="carrier">Python 脚本常量，Agent 无权改</span>
-        <p class="kwhy">这些是<b>验收标准非常确定</b>的事，不该每次靠自然语言自由发挥。正侧背三视图、表情变体、动作组、装备拆解、色板全部结构化沉淀成模板，脚本机械拼接——这样才可控、可复现、可跨版本对比。</p>
+        <p class="kwhy">这些是<b>验收标准很确定</b>的事，没必要每次靠自然语言临场发挥。三视图、表情变体、动作组、装备拆解、色板全写进模板，脚本机械拼——结果才可复现、可跨版本对比。</p>
       </div>
     </div>
   </div>
@@ -733,10 +762,10 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 <section id="s4">
   <div class="sec-head">
     <span class="eyebrow">§4 · 怎么验证</span>
-    <h2>横向对照测有没有用，纵向迭代测每一版解决了什么</h2>
+    <h2>横向测有没有用，纵向测每一版修好了什么</h2>
     <p class="lede">
-      测试体系分两层。<b>横向</b>回答「Skill 到底有没有真实的边际增益」，<b>纵向</b>回答「每一版到底修好了什么」。
-      两层的数字不是一回事，分开看才不会混。
+      这两层的数字不是一回事，得分开看。横向回答「Skill 到底有没有边际增益」，
+      纵向回答「三版里每一版各修好了什么」。
     </p>
   </div>
 
@@ -745,7 +774,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     <div class="expcard">
       <div class="eh">
         <div class="et">横向 · 三路对照</div>
-        <p class="eq">为什么必须做对照：<b>现在模型和 Agent 本身都很强</b>。如果不设基线，很容易把模型自己的能力误算成 Skill 的价值。</p>
+        <p class="eq">得做对照的理由很实际：<b>现在的模型和 Agent 本身就很强</b>。不设基线，很容易把模型自己的本事算成 Skill 的功劳。</p>
       </div>
       <div class="eb">
         <div class="bars">
@@ -772,8 +801,8 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
           </div>
         </div>
         <p class="honest-note" style="margin-top:20px">
-          这三个数是<b>同一时点</b>三路的元素完整率。Skill 的增益必须同时超过前两路才算成立——
-          只赢第一路说明它只是「有 Agent 比没 Agent 强」，不是 Skill 本身的功劳。
+          三个数是<b>同一时点</b>跑出来的。Skill 的增益得同时超过前两路才算数——
+          只赢第一路，那只能说明「有 Agent 比没 Agent 强」，跟 Skill 没关系。
         </p>
       </div>
     </div>
@@ -782,24 +811,24 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     <div class="expcard">
       <div class="eh">
         <div class="et">纵向 · 三版迭代</div>
-        <p class="eq">迭代的依据是<b>看 badcase，不是盲目改 prompt</b>。每一版都是被一类具体的翻车逼出来的。</p>
+        <p class="eq">每一版都是被一类具体的翻车逼出来的。<b>先看 badcase 归因，再决定改什么</b>，而不是反过来先改再看效果。</p>
       </div>
       <div class="eb">
         <div class="vers">
           <div class="ver">
             <div class="vh"><span class="vn">V1</span><span class="vt">参考图 + 详细外观描述</span></div>
-            <p class="vhit">看起来信息量最全，结果最致命：<b>肤色漂移、服装颜色被文字覆盖</b>。暖肤色被写成偏白的描述后，生成出来是惨白瓷面；灰色卫衣变全白。</p>
-            <p class="vfix"><span class="fl">第一轮修正</span>把肤色、材质、光影这类<b>连续视觉量交回参考图锚定</b>，最终喂给模型的文字不再过度描述外观。</p>
+            <p class="vhit">我当时的想法很朴素——参考图给上，外观描述写全，信息越多越保险。跑完第一批，问题出在肤色上：参考图是暖棕调，生成出来是惨白的瓷面，灰卫衣也成了纯白。<br><br>我一开始以为是模型不行，去翻拼出来的提示词才发现，identity block 那四个字段里都带了 <code>white</code>，逐字拼成一句之后，同一段话里 <code>white</code> 出现了五次。文字的强度压过了参考图的像素。而下游三视图、表情、动作全锚着这张已经洗白的基准图，等于集体跟着偏。</p>
+            <p class="vfix"><span class="fl">真正让我想明白的</span>是一个反常的地方：那批图里唯独 comprehensive 那张最贴原图。不是它做对了，是脚本有个 bug，把原图又重新喂了一遍。这个本该修掉的错误，反倒指出了正确做法——<b>外观的真相应该来自像素，不该来自文字</b>。所以第二版把基准图改成拿原图做归一化，只动姿势、背景、光，不碰外观。</p>
           </div>
           <div class="ver">
             <div class="vh"><span class="vn">V2</span><span class="vt">加身份锚点字段</span></div>
-            <p class="vhit">连续量稳住了，但<b>身份标记开始丢</b>：logo、屏幕脸、校徽、关键道具这些小而关键的元素经常不见，或者被渲染成别的东西。</p>
-            <p class="vfix"><span class="fl">第二轮修正</span>增加身份锚点字段，让<b>离散身份量用文字高权重锁定</b>——Agent 挑出 3–5 个「移除后就不是这个角色」的标记，脚本写进高权重位。</p>
+            <p class="vhit">肤色稳住了，小东西开始丢：logo、屏幕脸、校徽、关键道具经常不见，或者被渲成别的东西。<br><br>这跟上一版的教训看着是矛盾的——刚说文字会抢权重，现在又要加文字。区分点在于<b>连续还是离散</b>：肤色、材质、光影是连续的，压成几个词就回不去了；logo、屏幕脸、几何结构是离散的，不显式写就没人管它。</p>
+            <p class="vfix"><span class="fl">第二轮修正</span>加身份锚点清单：Agent 从参考图里挑 3 到 5 个「去掉就不是这个人」的标记，脚本把它们放进提示词的高权重位。</p>
           </div>
           <div class="ver">
             <div class="vh"><span class="vn">V3</span><span class="vt">加空间关系字段</span></div>
-            <p class="vhit">单主体稳了，多主体还是乱：<b>人物位置和动作关系混乱</b>，两个主体换位、融合，或者人和道具之间没有接触关系。</p>
-            <p class="vfix"><span class="fl">第三轮修正</span>增加空间关系字段，<b>关系量用空间骨架约束</b>——左右、前后景、距离、视线、接触点全部写成可渲染的事实。</p>
+            <p class="vhit">单主体稳了，多主体还是乱。两个人换位、融合，或者人和道具之间根本没有接触关系——元素都生成对了，但元素之间没有关系。</p>
+            <p class="vfix"><span class="fl">第三轮修正</span>加空间关系字段：左右、前后景、距离、视线朝向、接触点，全部写成可渲染的事实，给模型一个能执行的空间骨架。</p>
           </div>
         </div>
       </div>
@@ -809,8 +838,8 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   <div class="metric-def" id="metric">
     <h4>元素完整率是怎么算的</h4>
     <p>
-      先根据用户 brief 和参考图，拆出一组<b>应该出现的元素</b>，再统计生成结果里实际保留下来的比例。
-      拆解时按重要性分三层：
+      先照用户 brief 和参考图，拆出一组<b>应该出现的元素</b>，再数生成结果里实际留住了几个。
+      拆的时候按重要性分三层：
     </p>
     <div class="tiers">
       <span>P0 · 身份锚点</span>
@@ -818,8 +847,8 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       <span>P2 · 辅助风格元素</span>
     </div>
     <p style="margin-top:13px">
-      比如肤色、脸型、服装颜色、关键配饰、身份标记、道具、整体画风是否被正确保留。
-      <b>经过 3 版迭代，元素完整率从 70% 提升到 85%</b>——主要改善的是身份锚点和配饰细节这两块原来最容易丢的。
+      比如肤色、脸型、服装颜色、关键配饰、身份标记、道具、整体画风有没有被正确保留。
+      <b>三版下来，元素完整率从 70% 到 85%</b>——改善集中在身份锚点和配饰细节，之前最容易丢的就是它们。
     </p>
   </div>
 
@@ -827,8 +856,8 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     <div class="lbl">最关键的一步</div>
     <h4>不停在上游看图，用下游视频表现反测上游 Skill</h4>
     <p>
-      角色设定图好不好看不算数。我把生成的设定图继续喂进视频生成链路，
-      用下游视频的实际表现，反过来判断上游 Skill 到底有没有效。
+      上游的图好不好看不算数。我把生成的设定图继续喂进视频链路，
+      用下游三条分镜的实际表现，反过来判断上游到底有没有效。
     </p>
     <div class="dims">
       <div><div class="dt">角色还原度</div><div class="dd">视频里的角色，是不是还像原始那个角色。</div></div>
@@ -839,11 +868,10 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   </div>
 
   <p class="honest-note">
-    <b>评分口径上的取舍</b>：这三个维度目前<b>不打分，用「是 / 否」判断</b>。
-    样本量还小，硬要给出精细分值反而会制造一种不该有的精确感——先把方向判准，比先把小数点做漂亮更重要。
-    另外我也参与搭建了 500+ 样本的视频评测数据集，按单节点生成、连续节点一致性、跨章节角色一致性拆能力，
-    从运动平滑、闪烁、空间关系、主体一致性等维度评分——目的是把「这个 Skill 让结果更好」
-    从主观感受变成<b>可追踪、可回归测试的指标</b>。
+    这三样我<b>没打分，用的是「是 / 否」</b>。样本量还小，硬给到小数点会造出一种不该有的精确感。
+    另外我也参与搭了 500+ 样本的视频评测数据集，按单节点生成、连续节点一致性、跨章节角色一致性拆能力，
+    从运动平滑、闪烁、空间关系、主体一致性几个维度评——目的是把「这个 Skill 让结果更好」
+    从一句主观感受，变成<b>能追踪、能回归测试的东西</b>。
   </p>
 </section>
 
@@ -852,7 +880,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   <div class="sec-head">
     <span class="eyebrow">§5 · 一个具体的 case</span>
     <h2>校园悬疑女主：单张图都不差，一进视频链路就崩</h2>
-    <p class="lede">这个 case 完整走了一遍上面所有的判断，也是最能说明「为什么要用下游反测上游」的一个。</p>
+    <p class="lede">这个 case 从头到尾走了一遍上面所有的判断，也是最能说明「为什么必须用下游反测上游」的一个。</p>
   </div>
 
   <div class="case" id="casebox">
@@ -866,7 +894,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
     </div>
 
     <div class="case-problem">
-      <p class="lead">问题在于：<b>单次生图看起来都不差</b>，但一放到视频链路里就出三个典型 badcase。</p>
+      <p class="lead">问题在于：<b>单张图看起来都不差</b>，一放进视频链路就出三个典型 badcase。</p>
       <div class="bcs">
         <div><div class="bt">脸型和发色每条都不一样</div><div class="bd">同一个角色在两条视频里像两个人。</div></div>
         <div><div class="bt">身份锚点经常丢</div><div class="bd">校徽、泪痣、怀表这些小而关键的元素频繁消失。</div></div>
@@ -878,17 +906,17 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       <div class="arm a1">
         <div class="an">第一路</div>
         <h4>用户原话直喂模型</h4>
-        <p>把「蓝黑短发、左眼泪痣、校服、银色怀表」直接喂给生图和生视频模型。<br><br>结果：画面审美还可以，但元素保留不稳定——尤其<b>泪痣、校徽、怀表</b>这类小而关键的身份元素最容易丢。</p>
+        <p>把「蓝黑短发、左眼泪痣、校服、银色怀表」原样喂给生图和生视频模型。<br><br>画面审美还行，但元素留不住——尤其<b>泪痣、校徽、怀表</b>这几个小而关键的，最容易丢。</p>
       </div>
       <div class="arm a2">
         <div class="an">第二路</div>
         <h4>裸 Agent 自由生成</h4>
-        <p>让 Agent 自己理解角色 brief，自由写角色设定图 prompt。<br><br>结果：比原话好一些，因为 Agent 会主动补三视图、表情、服装这些信息。但它<b>过度描述肤色、光影、材质，反而盖掉了参考图特征</b>；对校徽、怀表、泪痣这类离散锚点也没有明确加权，下游视频照样漂。</p>
+        <p>让 Agent 自己读 brief，自由写设定图 prompt。<br><br>比原话好一些，它会主动补三视图、表情、服装。但它<b>把肤色、光影、材质描述得太细，反而盖掉了参考图</b>；校徽、怀表、泪痣这类离散锚点也没加权，下游照样漂。</p>
       </div>
       <div class="arm a3">
         <div class="an">第三路</div>
         <h4>Agent + 角色设定图 Skill</h4>
-        <p>把角色信息拆成三类分别处理：<b>肤色、脸型、发色、光影</b>交给参考图锚定；<b>泪痣、校徽、怀表、发卡</b>写进结构化字段；<b>人物朝向、表情、动作组、配饰位置</b>写进空间关系字段。<br><br>最后由脚本按固定模板拼成完整 prompt：正侧背三视图、表情变体、动作组、配饰拆解、色板、16:9 图幅。</p>
+        <p>角色信息拆成三类分头处理：<b>肤色、脸型、发色、光影</b>交给参考图；<b>泪痣、校徽、怀表、发卡</b>写进结构化字段；<b>朝向、表情、动作组、配饰位置</b>写进空间关系字段。<br><br>最后脚本按固定模板拼成完整 prompt：三视图、表情变体、动作组、配饰拆解、色板、16:9。</p>
       </div>
     </div>
 
@@ -896,12 +924,12 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       <div>
         <div class="rk">上游 · 元素完整率</div>
         <div class="rv">70%<span class="arrow">→</span><span class="hi">85%</span></div>
-        <p class="rd">早期版本约 70%，主要丢在身份锚点和配饰细节。迭代后到 85%——核心改善是<b>泪痣、校徽、怀表、服装颜色、动作组稳定了</b>。</p>
+        <p class="rd">早期版本 70% 上下，丢的主要是身份锚点和配饰细节。迭代后到 85%——<b>泪痣、校徽、怀表、服装颜色、动作组都稳住了</b>。</p>
       </div>
       <div>
         <div class="rk">下游 · 视频表现</div>
         <div class="rv"><span class="hi">≈ +10%</span></div>
-        <p class="rd">角色还原度、跨镜一致性、生动度整体提升约 10%。这说明 Skill 的价值<b>不是让单张图更好看</b>，而是把角色变成可复用的视觉资产，减少后续分镜里的漂移和反复抽卡。</p>
+        <p class="rd">角色还原度、跨镜一致性、生动度整体好了约 10%。这条链路验证的是：Skill 起作用的地方<b>不在单张图的观感</b>，在于把角色变成能反复调用的资产，让后面的分镜少漂、少抽卡。</p>
       </div>
     </div>
   </div>
@@ -911,7 +939,7 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
 <section id="s6">
   <div class="sec-head">
     <span class="eyebrow">§6 · 思考与感悟</span>
-    <h2>这段经历里我真正沉下来的四件事</h2>
+    <h2>学到什么，和还没想明白什么</h2>
   </div>
 
   <div class="takes" id="takes">
@@ -919,34 +947,34 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
       <div class="tn">01</div>
       <div>
         <h3>Skill 不是把 Prompt 写长，是把可复用能力工程化</h3>
-        <p>一开始我以为写得越全越好，V1 的翻车直接否掉了这个直觉。真正要做的判断是：<b>每一类信息该由谁承载</b>——图像、文字，还是脚本常量。Prompt 不该平均用力。</p>
+        <p>「信息越全越保险」这个直觉，被 V1 的翻车直接否掉了。真正要判断的是<b>每一类信息该由谁承载</b>——图像、文字，还是脚本常量。提示词不该平均用力。</p>
       </div>
     </div>
     <div class="take">
       <div class="tn">02</div>
       <div>
         <h3>先把任务拆成「智能」和「执行」</h3>
-        <p>智能是需要大模型当大脑判断的部分，用自然语言的 markdown 写最合适；执行是验收标准非常确定的部分，就该用脚本写死。<b>这条边界划清楚了，结果才能审计、才能复现、才能跨版本对比。</b>Skill 和一段 prompt 模板的区别就在这里。</p>
+        <p>智能是需要大模型当大脑判断的部分，用 markdown 写最合适；执行是验收标准很确定的部分，该用脚本写死。<b>这条边界划清楚，结果才审计得了、复现得了、跨版本比得了。</b>Skill 和一段提示词模板的区别就在这儿。</p>
       </div>
     </div>
     <div class="take">
       <div class="tn">03</div>
       <div>
         <h3>一定要用下游表现反测上游</h3>
-        <p>只看角色设定图本身好不好看，会得出完全错误的结论——单张图不差，视频里全崩。<b>上游能力的验收标准必须放在下游</b>。这也是为什么三路对照的第一路（用户原话直喂）必须存在：不设真基线，就分不清是模型强还是 Skill 强。</p>
+        <p>只看设定图本身，会得出完全相反的结论：单张图挺好，视频里全崩。<b>上游能力的验收标准得放在下游。</b>这也是三路对照里第一路必须存在的原因——不设真基线，就分不清是模型强还是 Skill 强。</p>
       </div>
     </div>
     <div class="take">
-      <div class="tn">04</div>
+      <div class="tn">还没想明白</div>
       <div>
-        <h3>迭代靠看 badcase，不靠盲目改 prompt</h3>
-        <p>三版迭代，每一版都是被一类具体翻车逼出来的：肤色漂移 → 身份标记丢失 → 多主体关系混乱。<b>先归因到「这类信息为什么会丢」，再决定改什么</b>，而不是反过来先改再看效果。</p>
+        <h3>Skill 该随基模变强而缩水，但缩到什么程度我没有标尺</h3>
+        <p>今天必须写死的护栏，模型下一版可能自己就会了，继续写死反而是负担。道理我认，可什么时候该删掉一条规则、凭什么判断它已经冗余，我目前只能靠每次重跑对照实验去撞。<b>这不是个可持续的办法，我还没想出更好的。</b></p>
       </div>
     </div>
   </div>
 
   <div class="formula" id="formula">
-    <div class="fh">一句话方法论</div>
+    <div class="fh">三版迭代最后收敛成这四句</div>
     <div class="fg">
       <div class="fi f1"><div class="ft">连续量靠像素锚</div><div class="fd">颜色、材质、光影交给参考图</div></div>
       <div class="fi f2"><div class="ft">离散量靠文字锁</div><div class="fd">logo、标记、道具显式加权</div></div>
@@ -956,8 +984,8 @@ footer .sig-path { font-size: 12.5px; color: var(--ink-3); max-width: 50em; marg
   </div>
 
   <div class="closing">
-    <p>AI 视频产品会从「人人手搓提示词的作坊」，走向「专业经验高度复用的内容工厂」。</p>
-    <p class="src">真正的机会不在单点生成能力，而在于谁能把创作者的经验、资产和流程，沉淀成可复用的 Skill。</p>
+    <p>这条赛道往下走，拼的会是谁能把创作者的经验、资产和流程存下来复用。</p>
+    <p class="src">单点生成能力已经不稀缺了。稀缺的是把它变成能反复调用的东西。</p>
   </div>
 </section>
 
